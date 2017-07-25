@@ -1,0 +1,12 @@
+* Holocube written by Dr. Jamie Theobald, theobald@fiu.edu
+
+* installation
+- Best to install virtual environment in main directory and run from within the venv
+- use pip to install python libraries
+  - pip install pyglet
+  - pip install scipy
+  - pip install matplotlib
+* how to run
+- run test.py when you are running with a single display monitor for testing/debugging
+- run.py is for the projector setup. Requires an appropriate viewport config
+
