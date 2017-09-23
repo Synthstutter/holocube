@@ -18,7 +18,7 @@ near, far = .01, 1.
 randomize = False
 
 # start the components
-hc.window.start(project=project, bg_color=bg, near=near, far=far, load_coords=True, config='../../test_viewport_config.txt', projection_screen=0)
+hc.window.start(project=project, bg_color=bg, near=near, far=far, load_coords=True, config='test_viewport_config.txt', projection_screen=0)
 hc.window.ref_bg_color = [.3,.3,.3,1]
 hc.arduino.start(ardname)
 # hc.filereader.start(tracker_name)
