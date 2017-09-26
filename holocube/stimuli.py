@@ -22,7 +22,7 @@ def rotmat(u=[0.,0.,1.], theta=0.0):
                 [-uy, ux, 0]])
     return cost*identity(3) + sint*ux + (1 - cost)*uxu
 
-class sprite_class(pyglet.graphics.Group):
+class Sprite(pyglet.graphics.Group):
     def __init__(self, window, vp=0, half=False):
         self.window = window
         # self.pos = array([vp*1000,0.]) #changed to match change projection in windows.py
@@ -32,8 +32,8 @@ class sprite_class(pyglet.graphics.Group):
         self.visible = False
         self.wd, self.ht = self.window.vps.vp[vp].coords[2], self.window.vps.vp[vp].coords[3]
         if half:
-            self.wd/=2
-            self.ht/=2
+            self.wd = int(self.wd/2)
+            self.ht = int(self.ht/2)
             
     def add(self, x=0, y=0):
         self.sprite = pyglet.sprite.Sprite(self.image, x=self.pos[0], y=self.pos[1], batch=self.window.world)
@@ -162,6 +162,20 @@ class Movable(pyglet.graphics.Group):
     def update_ry_func(self, dt=0.0, func=None):
         self.rot[1] = func()
     
+    def subset_inc_px(self, bool_a, x):
+        '''move in x direction just some of the vertices'''
+        self.coords[0, bool_a] += x
+        self.vl.vertices[::3] = self.coords[0]
+
+    def subset_inc_py(self, bool_a, y):
+        '''move in z direction just some of the vertices'''
+        self.coords[1, bool_a] += y
+        self.vl.vertices[1::3] = self.coords[1]
+
+    def subset_inc_pz(self, bool_a, z):
+        '''move in z direction just some of the vertices'''
+        self.coords[2, bool_a] += z
+        self.vl.vertices[2::3] = self.coords[2]
 
     def set_state(self):
         glRotatef(self.rot[0], 1.0, 0.0, 0.0)
@@ -234,7 +248,7 @@ class Points(Movable):
 
     def set_pt_size(self, pt_size):
         self.pt_size = pt_size
-
+        
     def set_state(self):
         super(Points, self).set_state()
         glPointSize(self.pt_size)
@@ -726,12 +740,12 @@ class Forest(Movable):
         self.colors = array(repeat(self.color*255, self.num*3), dtype='byte')
         self.colors[:12] = 255
 
-class grating_class(sprite_class):
+class grating_class(Sprite):
     '''Moving gratings and plaids in a single window.  Fast means put
     different values in the blue, red and green sequential channels.'''
-    def __init__(self, window, vp=0, rate=120., add=False, fast=False, half=False):
+    def __init__(self, window, vp=0, rate=120., add=False, fast=True, half=False):
 
-        sprite_class.__init__(self, window, vp=vp, half=half)
+        Sprite.__init__(self, window, vp=vp, half=half)
 
         # self.wd, self.ht = self.window.vpcoords[0,2], self.window.vpcoords[0,3]
         self.indices = indices((self.wd, self.ht))
@@ -765,7 +779,8 @@ class grating_class(sprite_class):
 
         # temporal
         if hasattr(tf, '__iter__'): tf_array = array(tf) #is it changing?
-        else: tf_array = repeat(tf, min(self.rate/tf, maxframes)) #or constant?
+        else:
+            tf_array = repeat(tf, min(abs(self.rate/tf), maxframes)) #or constant?
 
         nframes = len(tf_array)
         phi_ts = cumsum(-2*pi*tf_array/float(self.rate))
@@ -943,12 +958,249 @@ class grating_class(sprite_class):
 
 
 
-class Bar_array(sprite_class):
+class Grating_cylinder(Sprite):
+    '''Moving gratings and plaids in a single window.  Fast means put
+    different values in the blue, red and green sequential channels.'''
+    def __init__(self, window, vp=0, rate=120., center=[0,0],
+                 add=False, fast=False, half=False):
+
+        Sprite.__init__(self, window, vp=vp, half=half)
+
+        # self.wd, self.ht = self.window.vpcoords[0,2], self.window.vpcoords[0,3]
+        self.indices = indices((self.wd, self.ht))
+        # h, v = meshgrid(linspace(-pi/4, pi/4, self.wd), linspace(-pi/4, pi/4, self.ht))
+        h, v = meshgrid(arctan2(linspace(-1, 1, self.wd),1), linspace(-pi/4, pi/4, self.ht))
+        self.center_dists = sqrt((h+center[0])**2 + (v+center[1])**2)
+        self.atans = arctan2(h+center[0], v+center[1])
+
+        self.rate = rate
+        self.fast = fast
+        self.gratings = []
+        self.vp = vp
+
+        if add: self.add()
+
+    def add_grating(self, sf=.1, tf=1, c=1, o=0, phi_i=0.,
+                    sd=None, sdb=None, mask_reflect=False,
+                    dots=False, dot_speed=[0,0,0.], maxframes=500):
+        frames = []
+        data = zeros((self.ht,self.wd,3), dtype='ubyte')
+
+        # gaussian mask
+        if sd:
+            mask_ss = scipy.stats.norm.pdf(self.center_dists, 0, sd)
+            mask_ss /= mask_ss.max() #normalize
+        else: mask_ss = ones([self.ht, self.wd])
+
+
+        if sdb:
+            mask_ssb = scipy.stats.norm.pdf(self.center_dists, 0, sdb)
+            mask_ssb /= mask_ssb.max() #normalize
+        else: mask_ssb = ones([self.ht, self.wd])
+
+        if mask_reflect:
+            half = int(self.wd/2)
+            mask_ss[:,-half:] = mask_ss[:,:half][:,::-1]
+            mask_ssb[:,-half:] = mask_ssb[:,:half][:,::-1]
+
+        # spatial
+        phi_ss = 2*pi*sf*cos(self.atans + (o-pi/2))*self.center_dists
+
+        # temporal
+        if hasattr(tf, '__iter__'): tf_array = array(tf) #is it changing?
+        else: tf_array = repeat(tf, min(abs(self.rate/tf), maxframes)) #or constant?
+
+        nframes = len(tf_array)
+        phi_ts = cumsum(-2*pi*tf_array/float(self.rate))
+
+        for f in arange(nframes):
+            if self.fast: #different frames in each color (projected without color wheel)
+                if f==0: prev_phi_t = 0 #first frame?
+                else: prev_phi_t = phi_ts[f-1]
+                phi_ts_b, phi_ts_r, phi_ts_g = linspace(prev_phi_t, phi_ts[f], 4)[1:]
+            else: #or grays
+                phi_ts_b, phi_ts_r, phi_ts_g = repeat(phi_ts[f],3)
+
+            # blue channel --- we don't need sub_phi_ts[0] since it was displayed last time
+            lum = mask_ssb*127*(1 + mask_ss*c*sin(phi_ss + phi_ts_b + phi_i))
+            data[:,:,2] = lum[:,:]
+            # red channel
+            lum = mask_ssb*127*(1 + mask_ss*c*sin(phi_ss + phi_ts_r + phi_i))
+            data[:,:,0] = lum[:,:]
+            # green channel
+            lum = mask_ssb*127*(1 + mask_ss*c*sin(phi_ss + phi_ts_g + phi_i))
+            data[:,:,1] = lum[:,:]
+            # add the dots
+            if dots: # if we are rendering dots
+                self.relposs = dots.coords - self.window.pos[:,newaxis] - (f * array(dot_speed))[:,newaxis]
+                self.dists = sqrt((self.relposs**2).sum(0))
+                self.azs = arctan2(self.relposs[2], self.relposs[0])
+                self.els = arctan2(self.relposs[1], self.dists)
+                for i in range(len(self.dists)): # grab them one by one
+                    # if self.dists[i] < self.window.far: #if this one is in range
+                    if self.dists[i] < 2: #if this one is in range
+                        # if (-pi/4 < self.els[i] <= pi/4) and not (-3*pi/4 < self.azs[i] <= pi/4):
+                        if (-pi/4 < self.els[i] <= pi/4):
+                            y = int((tan(self.els[i]) + 1)/2*self.ht)
+                            if self.vp==3 and -pi/4 < self.azs[i] <= pi/4:
+                                x = int((tan(self.azs[i]) + 1)/2*self.wd)
+                                if mask_ssb[y,x]<.1:
+                                    try:
+                                        data[y-1:y+1,x-1:x+1,:] = 255
+                                    except:
+                                        data[y,x,:] = 255
+                            elif self.vp==0 and -3*pi/4 < self.azs[i] <= -pi/4:
+                                x = int((tan(self.azs[i]-pi/2) + 1)/2*self.wd)
+                                if mask_ssb[y,x]<.1:
+                                    try:
+                                        data[y-1:y+1,x-1:x+1,:] = 255
+                                    except:
+                                        data[y,x,:] = 255
+                            elif self.vp==1 and (3*pi/4 < self.azs[i] <= pi or -pi < self.azs[i] <= -3*pi/4):
+                                x = int((tan(self.azs[i]-pi) + 1)/2*self.wd)
+                                if mask_ssb[y,x]<.1:
+                                    try:
+                                        data[y-1:y+1,x-1:x+1,:] = 255
+                                    except:
+                                        data[y,x,:] = 255
+                        
+	    # make each frame and append the image to the frames list
+            frames.append(pyglet.image.ImageData(self.wd, self.ht, 'RGB', data.tostring()))
+            
+        # make the animation with all the frames and append it to the list of playable, moving gratings
+        self.gratings.append( pyglet.image.Animation.from_image_sequence(frames, 1./self.rate) )
+
+
+    def add_radial(self, sf=1., tf=1., c=1., phi_i=0, sd=None, sdb=None, maxframes=500):
+        '''Add a circular radiating grating'''
+        frames = []
+        data = zeros((self.ht,self.wd,3), dtype='ubyte')
+
+        # gaussian mask
+        if sd:
+            mask_ss = scipy.stats.norm.pdf(self.center_dists, 0, sd)
+            mask_ss /= mask_ss.max() #normalize
+        else: mask_ss = ones([self.ht, self.wd])
+
+        if sdb:
+            mask_ssb = scipy.stats.norm.pdf(self.center_dists, 0, sdb)
+            mask_ssb /= mask_ssb.max() #normalize
+        else: mask_ssb = ones([self.ht, self.wd])
+
+        # spatial
+        # phi_ss = 2*pi*sf*cos(self.atans + (o-pi/2))*self.center_dists
+        phi_ss = 2*pi*sf*self.center_dists
+
+        # temporal
+        if hasattr(tf, '__iter__'): tf_array = array(tf) #is it changing?
+        else: tf_array = repeat(tf, min(abs(self.rate/tf), maxframes)) #or constant?
+
+        nframes = len(tf_array)
+        phi_ts = cumsum(-2*pi*tf_array/float(self.rate))
+
+        for f in arange(nframes):
+            if self.fast: #different frames in each color (projected without color wheel)
+                if f==0: prev_phi_t = 0 #first frame?
+                else: prev_phi_t = phi_ts[f-1]
+                phi_ts_b, phi_ts_r, phi_ts_g = linspace(prev_phi_t, phi_ts[f], 4)[1:]
+            else: #or grays
+                phi_ts_b, phi_ts_r, phi_ts_g = repeat(phi_ts[f],3)
+
+            # blue channel --- we don't need sub_phi_ts[0] since it was displayed last time
+            lum = mask_ssb*127*(1 + mask_ss*c*sin(phi_ss + phi_ts_b + phi_i))
+            data[:,:,2] = lum[:,:]
+            # red channel
+            lum = mask_ssb*127*(1 + mask_ss*c*sin(phi_ss + phi_ts_r + phi_i))
+            data[:,:,0] = lum[:,:]
+            # green channel
+            lum = mask_ssb*127*(1 + mask_ss*c*sin(phi_ss + phi_ts_g + phi_i))
+            data[:,:,1] = lum[:,:]
+	    # make each frame and append the image to the frames list
+            frames.append(pyglet.image.ImageData(self.wd, self.ht, 'RGB', data.tostring()))
+            
+        # make the animation with all the frames and append it to the list of playable, moving gratings
+        self.gratings.append( pyglet.image.Animation.from_image_sequence(frames, 1./self.rate) )
+
+    def add_plaid(self, sf1=.1, tf1=1, c1=1, o1=0, phi_i1=0.,
+                  sf2=.1, tf2=1, c2=1, o2=0, phi_i2=0., sd=None, sdb=None, maxframes=500):
+        frames = []
+        data = zeros((self.ht,self.wd,3), dtype='byte')
+
+        # gaussian mask
+        if sd:
+            mask_ss = scipy.stats.norm.pdf(self.center_dists, 0, sd)
+            mask_ss /= mask_ss.max() #normalize
+        else: mask_ss = ones([self.ht, self.wd])
+
+        if sdb:
+            mask_ssb = scipy.stats.norm.pdf(self.center_dists, 0, sdb)
+            mask_ssb /= mask_ssb.max() #normalize
+        else: mask_ssb = ones([self.ht, self.wd])
+
+        # spatial
+        phi_ss1 = 2*pi*sf1*cos(self.atans + (o1-pi/2))*self.center_dists
+        phi_ss2 = 2*pi*sf2*cos(self.atans + (o2-pi/2))*self.center_dists
+                    
+        # temporal
+        if hasattr(tf1, '__iter__'): lentf1=len(tf1)
+        else: lentf1 = self.rate/tf1
+        if hasattr(tf2, '__iter__'): lentf2=len(tf2)
+        else: lentf2 = self.rate/tf2
+        if hasattr(tf1, '__iter__'): tf1_array = array(tf1) #is it changing?
+        else: tf1_array = repeat(tf1, min(max(lentf1, lentf2), maxframes)) #or constant?
+        if hasattr(tf2, '__iter__'): tf2_array = array(tf2) #is it changing?
+        else: tf2_array = repeat(tf2, min(max(lentf1, lentf2), maxframes)) #or constant?
+
+        nframes = max(len(tf1_array), len(tf2_array))
+        phi_t1s = cumsum(-2*pi*tf1_array/float(self.rate))
+        phi_t2s = cumsum(-2*pi*tf2_array/float(self.rate))
+
+        for f in arange(nframes):
+            if self.fast: #different frames in each color (projected without color wheel)
+                if f==0: prev_phi_t1 = prev_phi_t2 = 0 #first frame?
+                else:
+                    prev_phi_t1 = phi_t1s[f-1]
+                    prev_phi_t2 = phi_t2s[f-1]
+                phi_t1s_b, phi_t1s_r, phi_t1s_g = linspace(prev_phi_t1, phi_t1s[f], 4)[1:]
+                phi_t2s_b, phi_t2s_r, phi_t2s_g = linspace(prev_phi_t2, phi_t2s[f], 4)[1:]
+            else: #or grays
+                phi_t1s_b, phi_t1s_r, phi_t1s_g = repeat(phi_t1s[f],3)
+                phi_t2s_b, phi_t2s_r, phi_t2s_g = repeat(phi_t2s[f],3)
+
+            # blue channel --- we don't need sub_phi_ts[0] since it was displayed last time
+            lum = mask_ssb*63*(2 + mask_ss*(c1*sin(phi_ss1 + phi_t1s_b + phi_i1) +\
+                                   c2*sin(phi_ss2 + phi_t2s_b + phi_i2)))
+            data[:,:,2] = lum[:,:]
+            # red channel
+            lum = mask_ssb*63*(2 + mask_ss*(c1*sin(phi_ss1 + phi_t1s_r + phi_i1) +\
+                                   c2*sin(phi_ss2 + phi_t2s_r + phi_i2)))
+            data[:,:,0] = lum[:,:]
+            # green channel
+            lum = mask_ssb*63*(2 + mask_ss*(c1*sin(phi_ss1 + phi_t1s_g + phi_i1) +\
+                                   c2*sin(phi_ss2 + phi_t2s_g + phi_i2)))
+            data[:,:,1] = lum[:,:]
+
+            # make each frame and append the image to the frames list
+            frames.append(pyglet.image.ImageData(self.wd, self.ht, 'RGB', data.tostring()))
+
+        # make the animation with all the frames and append it to the list of playable, moving gratings
+        self.gratings.append( pyglet.image.Animation.from_image_sequence(frames, 1./self.rate) )
+
+    def choose_grating(self, num):
+        '''Assign one of the already generated gratings as the current
+        display grating'''
+        self.image = self.gratings[num]
+
+
+
+
+
+class Bar_array(Sprite):
     '''Moving array of bars in a single window.  Fast means put different
     values in the blue, red and green sequential channels.
     '''
     def __init__(self, window, vp=0, rate=120., add=False, fast=False):
-        sprite_class.__init__(self, window, vp=0)
+        Sprite.__init__(self, window, vp=0)
 
         # self.wd, self.ht = self.window.vpcoords[0,2], self.window.vpcoords[0,3]
         self.indices = indices((self.ht, self.wd))
@@ -1052,12 +1304,12 @@ class Bar_array(sprite_class):
         self.image = self.animations[num]
 
 
-class kinetogram_class(sprite_class):
+class kinetogram_class(Sprite):
     '''Moving dots with some degree of coherence.  Fast means put different
     values in the blue, red and green sequential channels.
     '''
     def __init__(self, window, vp=0, rate=120., add=False, fast=False):
-        sprite_class.__init__(self, window, vp)
+        Sprite.__init__(self, window, vp)
 
         # self.wd, self.ht = self.window.vpcoords[0,2], self.window.vpcoords[0,3]
         self.indices = indices((self.wd, self.ht))
