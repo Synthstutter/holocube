@@ -14,14 +14,24 @@ numframes = 500
 fwd_v = 0.01
 
 # in which theta range should lateral wn be active?
-theta_range = [pi-arccos(0), pi-arccos(.25), pi-arccos(.50), pi-arccos(.75), pi]
+theta_range = [pi-arccos(0), pi-arccos(0.25), pi-arccos(.5), pi-arccos(0.75), pi - arccos(1)]
 
 def calc_theta(x,y,z):
     '''from cartesian coords return spherical coords theta'''
     r = sqrt(x**2 + y**2 + z**2)
     theta = arccos(z/r)
     return theta
-    
+
+def inds_in_thetas(coords_array, theta_min, theta_max):
+    ''' check if coords in range of thetas. return frame and point inds for which wn should be active '''
+    for frame in coords_array:
+        for point in arange(pts.num):
+            if theta_min < calc_theta(frame[0][point], frame[1][point], frame[2][point]) < theta_max:
+                frame[3][point] = 1
+            else:
+                frame[3][point] = 0
+    return array([frame[3] for frame in coords_array], dtype='bool')
+
 # a set of points
 pts = hc5.stim.Points(hc5.window, 3000, dims=[[-2,2],[-2,2],[-30,5]], color=.5, pt_size=3)
 
@@ -33,15 +43,6 @@ coords_over_t[0] = [pts.coords[0] , pts.coords[1], pts.coords[2], [0]*pts.num]
 for frame in arange(1, numframes):
     coords_over_t[frame] = array([pts.coords[0], pts.coords[1], coords_over_t[frame-1][2] + fwd_v, [0]*pts.num])
 
-## check if coords in range of thetas
-def inds_in_thetas(coords_array, theta_min, theta_max):
-    for frame in coords_array:
-        for point in arange(pts.num):
-            if theta_min < calc_theta(frame[0][point], frame[1][point], frame[2][point]) < theta_max:
-                frame[3][point] = 1
-
-    return array([frame[3] for frame in coords_array], dtype='bool') ## frame and point indexes for which wn should be active           
-
 act_inds = array([inds_in_thetas(coords_over_t, theta_range[num], theta_range[num+1]) for num in arange(len(theta_range)-1)])
 
 # the wn motion
@@ -52,12 +53,13 @@ lights1 = mod(cumsum(wn1_dir),3)
 lights1 = array([[0,e*127,0] for e in lights1])
 lights1[-1] = 0
 
+orig_x = pts.coords[0, :].copy()
+select_all = array([True]*pts.num)
 tampl = .05
 rampl = 1
 hc5.scheduler.add_exp()
 
 ## experiments
-
 
 
 expnumspikes = hc5.tools.test_num_flash(expi, numframes)
@@ -72,6 +74,7 @@ middles = [[pts.inc_pz,        fwd_v],
 
 ends =    [[pts.on,            0],
            [pts.inc_pz, -fwd_v*numframes],
+           [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
 
@@ -89,6 +92,7 @@ middles = [[pts.inc_pz,        fwd_v],
 
 ends =    [[pts.on,            0],
            [pts.inc_pz, -fwd_v*numframes],
+           [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
 
@@ -106,6 +110,7 @@ middles = [[pts.inc_pz,        fwd_v],
 
 ends =    [[pts.on,            0],
            [pts.inc_pz, -fwd_v*numframes],
+           [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
 
@@ -123,6 +128,7 @@ middles = [[pts.inc_pz,        fwd_v],
 
 ends =    [[pts.on,            0],
            [pts.inc_pz, -fwd_v*numframes],
+           [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
 
