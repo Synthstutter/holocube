@@ -8,21 +8,24 @@ from holocube.tools import mseq
 expi = 1
 
 # how long for the exp?
-numframes = 500
+numframes = 511
 
 # how fast is forward velocity?
 fwd_v = 0.01
 
-# in which theta range should lateral wn be active?
-theta_range = [pi-arccos(0), pi-arccos(0.25), pi-arccos(.5), pi-arccos(0.75), pi - arccos(1)]
+# where should our theta boundaries be?
+theta_ranges = [[arccos(1.00), arccos(0.625)],
+                [arccos(0.625), arccos(0.250)],
+                [arccos(0.250), arccos(-0.125)],
+                [arccos(-0.125), arccos(-0.50)]]
 
 def calc_theta(x,y,z):
-    '''from cartesian coords return spherical coords theta'''
+    '''from cartesian coords return spherical coords declination theta (pi - theta)'''
     r = sqrt(x**2 + y**2 + z**2)
-    theta = arccos(z/r)
+    theta = pi - arccos(z/r)
     return theta
 
-def inds_in_thetas(coords_array, theta_min, theta_max):
+def inds_btw_thetas(coords_array, theta_min, theta_max):
     ''' check if coords in range of thetas. return frame and point inds for which wn should be active '''
     for frame in coords_array:
         for point in arange(pts.num):
@@ -33,30 +36,29 @@ def inds_in_thetas(coords_array, theta_min, theta_max):
     return array([frame[3] for frame in coords_array], dtype='bool')
 
 # a set of points
-pts = hc5.stim.Points(hc5.window, 3000, dims=[[-2,2],[-2,2],[-30,5]], color=.5, pt_size=3)
+pts = hc5.stim.Points(hc5.window, 3000, dims=[[-2,2],[-2,2],[-30,5]], color=.5, pt_size=6)
 
-# simulation to calculate frames within thetas
+# simulation to calculate points in frames that are between thetas
 coords_over_t = zeros([numframes, 4, pts.num]) 
 
-## add fwd_v position to each z coordinate
+# add fwd_v position to each z coordinate
 coords_over_t[0] = [pts.coords[0] , pts.coords[1], pts.coords[2], [0]*pts.num]
 for frame in arange(1, numframes):
     coords_over_t[frame] = array([pts.coords[0], pts.coords[1], coords_over_t[frame-1][2] + fwd_v, [0]*pts.num])
 
-act_inds = array([inds_in_thetas(coords_over_t, theta_range[num], theta_range[num+1]) for num in arange(len(theta_range)-1)])
+act_inds = array([inds_btw_thetas(coords_over_t, t_range[0], t_range[1]) for t_range in theta_ranges])
 
 # the wn motion
 wn1 = mseq(2,9,0,1)
-wn1_dir = array(sign(ediff1d(wn1,None, 0)), dtype='int')
 
-lights1 = mod(cumsum(wn1_dir),3)
-lights1 = array([[0,e*127,0] for e in lights1])
-lights1[-1] = 0
+lights1 = array([(0,175+wn*80,0) for wn in wn1], dtype='int')
+lights1[-1] = array([0, 0, 0])
 
 orig_x = pts.coords[0, :].copy()
 select_all = array([True]*pts.num)
 tampl = .05
 rampl = 1
+
 hc5.scheduler.add_exp()
 
 ## experiments
@@ -75,6 +77,7 @@ middles = [[pts.inc_pz,        fwd_v],
 ends =    [[pts.on,            0],
            [pts.inc_pz, -fwd_v*numframes],
            [pts.subset_set_px, select_all, orig_x ],
+           [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
 
