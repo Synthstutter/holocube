@@ -1,5 +1,4 @@
 # horizon test with rotation
-
 import holocube.hc5 as hc5
 from numpy import *
 from holocube.tools import mseq
@@ -12,7 +11,7 @@ numframes = 500
 
 # how fast is forward velocity and horizontal translational velocities, triangle wav velocity?
 fwd_v = 0.01
-trng_wav_v = 0.05
+trng_wav_v = 0.01
 tampl = 0.05
 
 # where should our theta boundaries be?
@@ -52,12 +51,8 @@ def hrz_trngl_wv(number_frames, wav_freq = 0.5, cpu_freq = 120):
     return trans
     
 # motions
-wn0 = mseq(2,9,0,1)
-wn1 = mseq(2,9,0,2)
-wn2 = mseq(2,9,0,3)
-wn3 = mseq(2,9,0,4)
+wnoise = [mseq(2,9,0,x[0]) for x in enumerate(theta_ranges)]
 tr_wav = hrz_trngl_wv(numframes, 0.5, 120)
-
 
 # a set of points
 pts = hc5.stim.Points(hc5.window, 5000, dims=[[-2,2],[-2,2],[-30,5]], color=.5, pt_size=3)
@@ -73,17 +68,8 @@ for frame in arange(1, numframes):
 act_inds = array([inds_btw_thetas(coords_over_t, t_range[0], t_range[1]) for t_range in theta_ranges])
 
 # lights
-lights0 = array([(0,175+wn*80,0) for wn in wn0], dtype='int')
-lights0[-1] = array([0, 0, 0])
-
-lights1 = array([(0,175+wn*80,0) for wn in wn1], dtype='int')
-lights1[-1] = array([0, 0, 0])
-
-lights2 = array([(0,175+wn*80,0) for wn in wn2], dtype='int')
-lights2[-1] = array([0, 0, 0])
-
-lights3 = array([(0,175+wn*80,0) for wn in wn3], dtype='int')
-lights3[-1] = array([0, 0, 0])
+wn_lights = array([array([(0,175+wn*80,0) for wn in ms], dtype='int') for ms in wnoise])
+wn_lights[:,-1] = array([0, 0, 0])
 
 tr_lights = array([(0, 175 + step*80, 0) for step in tr_wav], dtype='int') 
 
@@ -101,12 +87,12 @@ starts =  [[pts.on,            1],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[0], wn0*tampl],
-           [pts.subset_inc_px,  act_inds[1], wn1*tampl],
-           [pts.subset_inc_px,  act_inds[2], wn2*tampl],
-           [pts.subset_inc_px,  act_inds[3], wn3*tampl],
+           [pts.subset_inc_px,  act_inds[0], wnoise[0]*tampl],
+           [pts.subset_inc_px,  act_inds[1], wnoise[1]*tampl],
+           [pts.subset_inc_px,  act_inds[2], wnoise[2]*tampl],
+           [pts.subset_inc_px,  act_inds[3], wnoise[3]*tampl],
            [hc5.window.set_ref, 0, expnumspikes],
-           [hc5.window.set_ref, 1, lights1]]
+           [hc5.window.set_ref, 1, wn_lights[0]]]
 
 ends =    [[pts.on,            0],
            [pts.inc_pz, -fwd_v*numframes],
@@ -123,9 +109,9 @@ starts =  [[pts.on,            1],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[0], wn1*tampl],
+           [pts.subset_inc_px,  act_inds[0], wnoise[0]*tampl],
            [hc5.window.set_ref, 0, expnumspikes],
-           [hc5.window.set_ref, 1, lights0]]
+           [hc5.window.set_ref, 1, wn_lights[0]]]
 
 ends =    [[pts.on,            0],
            [pts.inc_pz, -fwd_v*numframes],
@@ -141,9 +127,9 @@ starts =  [[pts.on,            1],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[1], wn1*tampl],
+           [pts.subset_inc_px,  act_inds[1], wnoise[1]*tampl],
            [hc5.window.set_ref, 0, expnumspikes],
-           [hc5.window.set_ref, 1, lights1]]
+           [hc5.window.set_ref, 1, wn_lights[1]]]
 
 ends =    [[pts.on,            0],
            [pts.inc_pz, -fwd_v*numframes],
@@ -159,9 +145,9 @@ starts =  [[pts.on,            1],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[2], wn1*tampl],
+           [pts.subset_inc_px,  act_inds[2], wnoise[2]*tampl],
            [hc5.window.set_ref, 0, expnumspikes],
-           [hc5.window.set_ref, 1, lights2]]
+           [hc5.window.set_ref, 1, wn_lights[2]]]
 
 ends =    [[pts.on,            0],
            [pts.inc_pz, -fwd_v*numframes],
@@ -177,9 +163,9 @@ starts =  [[pts.on,            1],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[3], wn1*tampl],
+           [pts.subset_inc_px,  act_inds[3], wnoise[3]*tampl],
            [hc5.window.set_ref, 0, expnumspikes],
-           [hc5.window.set_ref, 1, lights3]]
+           [hc5.window.set_ref, 1, wn_lights[3]]]
 
 ends =    [[pts.on,            0],
            [pts.inc_pz, -fwd_v*numframes],
