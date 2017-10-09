@@ -82,43 +82,17 @@ hc5.scheduler.add_exp()
 
 ## experiments
 
-##################### all angles wn #########################
-expnumspikes = hc5.tools.test_num_flash(expi, numframes)
-starts =  [[pts.on,            1],
-           # [hc5.window.set_far,  100],
-           [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
-
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[0], wnoise[0]*tampl],
-           [pts.subset_inc_px,  act_inds[1], wnoise[1]*tampl],
-           [pts.subset_inc_px,  act_inds[2], wnoise[2]*tampl],
-           [pts.subset_inc_px,  act_inds[3], wnoise[3]*tampl],
-           [hc5.window.set_ref, 0, wn_lights[0]],
-           [hc5.window.set_ref, 1, wn_lights[1]],
-           [hc5.window.set_ref, 2, wn_lights[2]],
-           [hc5.window.set_ref, 3, wn_lights[3]]
-           ]
-
-ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
-           [pts.subset_set_px, select_all, orig_x ],
-           [hc5.window.set_ref, 0, [0,0,0]],
-           [hc5.window.set_ref, 1, [0,0,0]],
-           [hc5.window.set_ref, 2, [0,0,0]],
-           [hc5.window.set_ref, 3, [0,0,0]],
-           [hc5.window.reset_pos, 1]]
-hc5.scheduler.add_test(numframes, starts, middles, ends)
-
+expi += 1
 
 ################### single angle wn #########################
-expnumspikes = hc5.tools.test_num_flash(expi, numframes)
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
            [pts.subset_inc_px,  act_inds[0], wnoise[0]*tampl],
-           [hc5.window.set_ref, 0, expnumspikes],
+           [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, wn_lights[0]]]
 
 ends =    [[pts.on,            0],
@@ -127,16 +101,16 @@ ends =    [[pts.on,            0],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi +=1
 
-
-expnumspikes = hc5.tools.test_num_flash(expi, numframes)
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
            [pts.subset_inc_px,  act_inds[1], wnoise[1]*tampl],
-           [hc5.window.set_ref, 0, expnumspikes],
+           [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, wn_lights[1]]]
 
 ends =    [[pts.on,            0],
@@ -145,17 +119,17 @@ ends =    [[pts.on,            0],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
 
 
-
-expnumspikes = hc5.tools.test_num_flash(expi, numframes)
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
            [pts.subset_inc_px,  act_inds[2], wnoise[2]*tampl],
-           [hc5.window.set_ref, 0, expnumspikes],
+           [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, wn_lights[2]]]
 
 ends =    [[pts.on,            0],
@@ -164,16 +138,16 @@ ends =    [[pts.on,            0],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
 
-
-expnumspikes = hc5.tools.test_num_flash(expi, numframes)
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
            [pts.subset_inc_px,  act_inds[3], wnoise[3]*tampl],
-           [hc5.window.set_ref, 0, expnumspikes],
+           [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, wn_lights[3]]]
 
 ends =    [[pts.on,            0],
@@ -182,16 +156,17 @@ ends =    [[pts.on,            0],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
 
 ####################### triangle waves #########################################
-expnumspikes = hc5.tools.test_num_flash(expi, numframes)
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
            [pts.subset_inc_px,  act_inds[0], tr_wav*trng_wav_v],
-           [hc5.window.set_ref, 0, expnumspikes],
+           [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
@@ -200,17 +175,16 @@ ends =    [[pts.on,            0],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
 
-
-
-expnumspikes = hc5.tools.test_num_flash(expi, numframes)
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
            [pts.subset_inc_px,  act_inds[1], tr_wav * trng_wav_v],
-           [hc5.window.set_ref, 0, expnumspikes],
+           [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
@@ -219,15 +193,16 @@ ends =    [[pts.on,            0],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
 
-expnumspikes = hc5.tools.test_num_flash(expi, numframes)
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
            [pts.subset_inc_px,  act_inds[2], tr_wav * trng_wav_v],
-           [hc5.window.set_ref, 0, expnumspikes],
+           [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
@@ -236,15 +211,16 @@ ends =    [[pts.on,            0],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
 
-expnumspikes = hc5.tools.test_num_flash(expi, numframes)
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
 middles = [[pts.inc_pz,        fwd_v],
            [pts.subset_inc_px,  act_inds[3], tr_wav * trng_wav_v],
-           [hc5.window.set_ref, 0, expnumspikes],
+           [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
@@ -253,7 +229,7 @@ ends =    [[pts.on,            0],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
-
+expi += 1
 
 
 # add the rest
