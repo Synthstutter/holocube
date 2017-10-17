@@ -11,6 +11,7 @@ numframes = 500
 
 # how fast is forward velocity and horizontal translational velocities, triangle wav velocity?
 trng_wav_v = 0.01
+fwd_v = [0.00, 0.01, 0.02]
 
 # where should our theta boundaries be?
 theta_ranges = [[0.0, 0.89566479385786502],
@@ -59,15 +60,15 @@ tr_lights = array([(0, 175 + step*80, 0) for step in tr_wav], dtype='int')
 pts = hc5.stim.Points(hc5.window, 5000, dims=[[-2,2],[-2,2],[-30,5]], color=.5, pt_size=3)
 
 # simulation to calculate points in frames that are between thetas
-coords_over_t = zeros([numframes, 4, pts.num]) 
+coords_over_t = array([zeros([numframes, 4, pts.num]) for v in fwd_v])
 
 # add fwd_v position to each z coordinate
-coords_over_t[0] = [pts.coords[0] , pts.coords[1], pts.coords[2], [0]*pts.num]
-for frame in arange(1, numframes):
-    coords_over_t[frame] = array([pts.coords[0], pts.coords[1], coords_over_t[frame-1][2] + fwd_v, [0]*pts.num])
+coords_over_t[:,0] = array([[pts.coords[0] , pts.coords[1], pts.coords[2], zeros(pts.num)] for item in fwd_v])
+for ind, val in enumerate(fwd_v):
+    for frame in arange(1, numframes):
+        coords_over_t[ind][frame] = array([pts.coords[0], pts.coords[1], coords_over_t[ind][frame-1][2] + fwd_v[ind], zeros(pts.num)])
 
-
-act_inds = array([inds_btw_thetas(coords_over_t, t_range[0], t_range[1]) for t_range in theta_ranges])
+act_inds = array([[inds_btw_thetas(coords_over_t[ind], t_range[0], t_range[1]) for t_range in theta_ranges] for ind, val in enumerate(fwd_v)])
 
 orig_x = pts.coords[0, :].copy()
 select_all = array([True]*pts.num)
@@ -76,21 +77,20 @@ hc5.scheduler.add_exp()
 
 ## experiments
 
-fwd_v = 0.00
 
-####################### No fwd_V #########################################
+####################### No fwd_v #########################################
 test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[0], tr_wav*trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[0]],
+           [pts.subset_inc_px,  act_inds[0][0], tr_wav*trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[0]*numframes],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]]
@@ -103,13 +103,13 @@ starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[1], tr_wav * trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[0]],
+           [pts.subset_inc_px,  act_inds[0][1], tr_wav * trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[0]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
@@ -122,13 +122,13 @@ starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[2], tr_wav * trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[0]],
+           [pts.subset_inc_px,  act_inds[0][2], tr_wav * trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[0]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
@@ -140,13 +140,13 @@ starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[3], tr_wav * trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[0]],
+           [pts.subset_inc_px,  act_inds[0][3], tr_wav * trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[0]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
@@ -154,20 +154,19 @@ hc5.scheduler.add_test(numframes, starts, middles, ends)
 expi += 1
 
 ################### fwd V = 0.01 ##################################
-fwd_v = 0.01
 
 test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[0], tr_wav*trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[1]],
+           [pts.subset_inc_px,  act_inds[1][0], tr_wav*trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[1]*numframes],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]]
@@ -180,13 +179,13 @@ starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[1], tr_wav * trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[1]],
+           [pts.subset_inc_px,  act_inds[1][1], tr_wav * trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[1]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
@@ -199,13 +198,13 @@ starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[2], tr_wav * trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[1]],
+           [pts.subset_inc_px,  act_inds[1][2], tr_wav * trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[1]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
@@ -218,13 +217,13 @@ starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[3], tr_wav * trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[1]],
+           [pts.subset_inc_px,  act_inds[1][3], tr_wav * trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[1]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
@@ -232,20 +231,19 @@ hc5.scheduler.add_test(numframes, starts, middles, ends)
 expi += 1
 
 ################### fwd V = 0.02 ##################################
-fwd_v = 0.02
 
 test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[0], tr_wav*trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[2]],
+           [pts.subset_inc_px,  act_inds[2][0], tr_wav*trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[2]*numframes],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]]
@@ -258,13 +256,13 @@ starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[1], tr_wav * trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[2]],
+           [pts.subset_inc_px,  act_inds[2][1], tr_wav * trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[2]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
@@ -277,13 +275,13 @@ starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[2], tr_wav * trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[2]],
+           [pts.subset_inc_px,  act_inds[2][2], tr_wav * trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[2]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
@@ -296,13 +294,13 @@ starts =  [[pts.on,            1],
            # [hc5.window.set_far,  100],
            [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]]]
 
-middles = [[pts.inc_pz,        fwd_v],
-           [pts.subset_inc_px,  act_inds[3], tr_wav * trng_wav_v],
+middles = [[pts.inc_pz,        fwd_v[2]],
+           [pts.subset_inc_px,  act_inds[2][3], tr_wav * trng_wav_v],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]]
 
 ends =    [[pts.on,            0],
-           [pts.inc_pz, -fwd_v*numframes],
+           [pts.inc_pz, -fwd_v[2]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [pts.subset_set_px, select_all, orig_x ],
            [hc5.window.reset_pos, 1]]
