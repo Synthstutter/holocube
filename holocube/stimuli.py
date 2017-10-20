@@ -181,7 +181,17 @@ class Movable(pyglet.graphics.Group):
         '''set x coordinate for some vertices '''
         self.coords[0, bool_a] = x_a
         self.vl.vertices[::3] = self.coords[0]
-        
+
+    def subset_set_py(self, bool_a, y_a):
+        '''set y coordinate for some vertices '''
+        self.coords[1, bool_a] = y_a
+        self.vl.vertices[1::3] = self.coords[1]
+
+    def subset_set_pz(self, bool_a, z_a):
+        '''set z coordinate for some vertices '''
+        self.coords[2, bool_a] = y_a
+        self.vl.vertices[2::3] = self.coords[2]
+
     def set_state(self):
         glRotatef(self.rot[0], 1.0, 0.0, 0.0)
         glRotatef(self.rot[1], 0.0, 1.0, 0.0)
