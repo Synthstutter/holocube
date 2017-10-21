@@ -179,17 +179,17 @@ class Movable(pyglet.graphics.Group):
 
     def subset_set_px(self, bool_a, x_a):
         '''set x coordinate for some vertices '''
-        self.coords[0, bool_a] = x_a
+        self.coords[0, bool_a] = x_a[bool_a]
         self.vl.vertices[::3] = self.coords[0]
 
     def subset_set_py(self, bool_a, y_a):
         '''set y coordinate for some vertices '''
-        self.coords[1, bool_a] = y_a
+        self.coords[1, bool_a] = y_a[bool_a]
         self.vl.vertices[1::3] = self.coords[1]
-
+                
     def subset_set_pz(self, bool_a, z_a):
         '''set z coordinate for some vertices '''
-        self.coords[2, bool_a] = y_a
+        self.coords[2, bool_a] = y_a[bool_a]
         self.vl.vertices[2::3] = self.coords[2]
 
     def set_state(self):
