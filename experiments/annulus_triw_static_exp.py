@@ -58,7 +58,7 @@ pts_trw = hc5.stim.Points(hc5.window, num_points, dims=[[-2,2],[-2,2],[-30,5]], 
 # motions
 tr_wav = hrz_trngl_wv(numframes, 0.5, 120)
 
-trw_motion = array([tr_wav * trng_wav_v] * pts_trw.num).T
+trw_motion = tr_wav * trng_wav_v
 
 # lights
 tr_lights = array([(0, 175 + step*80, 0) for step in tr_wav], dtype='int') 
@@ -87,7 +87,7 @@ act_inds_trw = array([inds_btw_thetas(coords_over_t_trw, t_range[0], t_range[1])
 ## keep original y values for coords so that we can move things in and out of "space"
 orig_y_fwd = array([pts_fwd.coords[1, :].copy()]*numframes)
 orig_y_trw = array([pts_trw.coords[1, :].copy()]*numframes)
-orig_x_trw = array([pts_trw.coords[0, :].copy()]*numframes)
+orig_x_trw = pts_trw.pos[0].copy()
 
 far_y_fwd = array([[10] * pts_fwd.num] * numframes)
 far_y_trw = array([[10] * pts_trw.num] * numframes)
@@ -115,7 +115,7 @@ middles = [
            [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
            [pts_trw.subset_set_py,  select_all, far_y_trw],
            [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
-           [pts_trw.subset_inc_px, select_all, trw_motion],
+           [pts_trw.inc_px, trw_motion],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]
            ]
@@ -123,7 +123,7 @@ middles = [
 ends =    [
            [pts_trw.on,            0],
            [pts_fwd.on,            0],
-           [ pts_trw.subset_set_px, select_all, orig_x_trw[0]],
+           [ pts_trw.set_px, orig_x_trw],
            [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]
@@ -146,7 +146,7 @@ middles = [
            [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
            [pts_trw.subset_set_py,  select_all, far_y_trw],
            [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
-           [pts_trw.subset_inc_px, select_all, trw_motion],
+           [pts_trw.inc_px, trw_motion],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]
            ]
@@ -154,7 +154,7 @@ middles = [
 ends =    [
            [pts_trw.on,            0],
            [pts_fwd.on,            0],
-           [ pts_trw.subset_set_px, select_all, orig_x_trw[0]],
+           [ pts_trw.set_px, orig_x_trw],
            [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]
@@ -177,7 +177,7 @@ middles = [
            [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
            [pts_trw.subset_set_py,  select_all, far_y_trw],
            [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
-           [pts_trw.subset_inc_px, select_all, trw_motion],
+           [pts_trw.inc_px, trw_motion],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]
            ]
@@ -185,7 +185,7 @@ middles = [
 ends =    [
            [pts_trw.on,            0],
            [pts_fwd.on,            0],
-           [ pts_trw.subset_set_px, select_all, orig_x_trw[0]],
+           [ pts_trw.set_px, orig_x_trw],
            [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]
@@ -208,7 +208,7 @@ middles = [
            [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
            [pts_trw.subset_set_py,  select_all, far_y_trw],
            [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
-           [pts_trw.subset_inc_px, select_all, trw_motion],
+           [pts_trw.inc_px, trw_motion],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]
            ]
@@ -216,16 +216,15 @@ middles = [
 ends =    [
            [pts_trw.on,            0],
            [pts_fwd.on,            0],
-           [ pts_trw.subset_set_px, select_all, orig_x_trw[0]],
+           [ pts_trw.set_px, orig_x_trw],
            [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]
            ]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
 expi += 1
-
 theta = 0
-vel += 1
+vel = 1
 
 test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [
@@ -241,7 +240,7 @@ middles = [
            [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
            [pts_trw.subset_set_py,  select_all, far_y_trw],
            [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
-           [pts_trw.subset_inc_px, select_all, trw_motion],
+           [pts_trw.inc_px, trw_motion],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]
            ]
@@ -249,7 +248,7 @@ middles = [
 ends =    [
            [pts_trw.on,            0],
            [pts_fwd.on,            0],
-           [ pts_trw.subset_set_px, select_all, orig_x_trw[0]],
+           [ pts_trw.set_px, orig_x_trw],
            [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]
@@ -272,7 +271,7 @@ middles = [
            [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
            [pts_trw.subset_set_py,  select_all, far_y_trw],
            [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
-           [pts_trw.subset_inc_px, select_all, trw_motion],
+           [pts_trw.inc_px, trw_motion],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]
            ]
@@ -280,7 +279,7 @@ middles = [
 ends =    [
            [pts_trw.on,            0],
            [pts_fwd.on,            0],
-           [ pts_trw.subset_set_px, select_all, orig_x_trw[0]],
+           [ pts_trw.set_px, orig_x_trw],
            [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]
@@ -303,7 +302,7 @@ middles = [
            [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
            [pts_trw.subset_set_py,  select_all, far_y_trw],
            [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
-           [pts_trw.subset_inc_px, select_all, trw_motion],
+           [pts_trw.inc_px, trw_motion],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]
            ]
@@ -311,7 +310,7 @@ middles = [
 ends =    [
            [pts_trw.on,            0],
            [pts_fwd.on,            0],
-           [ pts_trw.subset_set_px, select_all, orig_x_trw[0]],
+           [ pts_trw.set_px, orig_x_trw],
            [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]
@@ -334,7 +333,7 @@ middles = [
            [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
            [pts_trw.subset_set_py,  select_all, far_y_trw],
            [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
-           [pts_trw.subset_inc_px, select_all, trw_motion],
+           [pts_trw.inc_px, trw_motion],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights]
            ]
@@ -342,14 +341,13 @@ middles = [
 ends =    [
            [pts_trw.on,            0],
            [pts_fwd.on,            0],
-           [ pts_trw.subset_set_px, select_all, orig_x_trw[0]],
+           [ pts_trw.set_px, orig_x_trw],
            [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
            [hc5.window.set_ref, 1, [0,0,0]],
            [hc5.window.reset_pos, 1]
            ]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
-expi += 1
-theta += 1
+
 
 # add the rest
 num_frames = 300
