@@ -8,7 +8,7 @@ expi = 1
 
 # how long for the exp?
 numframes = 500
-num_points = 500
+num_points = 5000
 
 # how fast is forward velocity and horizontal translational velocities, triangle wav velocity?
 trng_wav_v = 0.01
