@@ -8,7 +8,7 @@ expi = 1
 
 # how long for the exp?
 numframes = 500
-num_points = 5000
+num_points = 500
 
 # how fast is forward velocity and horizontal translational velocities, triangle wav velocity?
 trng_wav_v = 0.01
@@ -92,7 +92,7 @@ orig_x_trw = pts_trw.pos[0].copy()
 far_y_fwd = array([[10] * pts_fwd.num] * numframes)
 far_y_trw = array([[10] * pts_trw.num] * numframes)
 
-select_all = array([True]*num_points)
+select_all = array([[1]*num_points] * numframes,  dtype='bool' )
 
 hc5.scheduler.add_exp()
 
