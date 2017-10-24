@@ -12,7 +12,7 @@ num_points = 5000
 
 # how fast is forward velocity and horizontal translational velocities, triangle wav velocity?
 trng_wav_v = 0.01
-fwd_v = [0.01, 0.02]
+fwd_v = [0.00, 0.01, 0.02]
 
 # where should our theta boundaries be?
 theta_ranges = [[0.0, 0.90374825082675658],
@@ -98,6 +98,7 @@ hc5.scheduler.add_exp()
 
 ## experiments
 
+######################################### 0.00 speed ####################################################
 vel = 0
 theta = 0
 
@@ -223,6 +224,8 @@ ends =    [
            ]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
 expi += 1
+
+########################################slow #######################################################
 theta = 0
 vel = 1
 
@@ -347,6 +350,137 @@ ends =    [
            [hc5.window.reset_pos, 1]
            ]
 hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
+
+##################################fast ######################################################
+theta = 0
+vel += 1
+
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
+starts =  [
+           [pts_fwd.on,            1],
+           [pts_trw.on,             1],
+           [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]],
+         
+            ]
+
+middles = [
+           [pts_fwd.inc_pz,        fwd_v[vel]],
+           [pts_fwd.subset_set_py, select_all, orig_y_fwd],
+           [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
+           [pts_trw.subset_set_py,  select_all, far_y_trw],
+           [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
+           [pts_trw.inc_px, trw_motion],
+           [hc5.window.set_ref, 0, test_num_spikes],
+           [hc5.window.set_ref, 1, tr_lights]
+           ]
+
+ends =    [
+           [pts_trw.on,            0],
+           [pts_fwd.on,            0],
+           [ pts_trw.set_px, orig_x_trw],
+           [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
+           [hc5.window.set_ref, 1, [0,0,0]],
+           [hc5.window.reset_pos, 1]
+           ]
+hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
+theta += 1
+
+
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
+starts =  [
+           [pts_fwd.on,            1],
+           [pts_trw.on,             1],
+           [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]],
+         
+            ]
+
+middles = [
+           [pts_fwd.inc_pz,        fwd_v[vel]],
+           [pts_fwd.subset_set_py, select_all, orig_y_fwd],
+           [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
+           [pts_trw.subset_set_py,  select_all, far_y_trw],
+           [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
+           [pts_trw.inc_px, trw_motion],
+           [hc5.window.set_ref, 0, test_num_spikes],
+           [hc5.window.set_ref, 1, tr_lights]
+           ]
+
+ends =    [
+           [pts_trw.on,            0],
+           [pts_fwd.on,            0],
+           [ pts_trw.set_px, orig_x_trw],
+           [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
+           [hc5.window.set_ref, 1, [0,0,0]],
+           [hc5.window.reset_pos, 1]
+           ]
+hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
+theta += 1
+
+
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
+starts =  [
+           [pts_fwd.on,            1],
+           [pts_trw.on,             1],
+           [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]],
+         
+            ]
+
+middles = [
+           [pts_fwd.inc_pz,        fwd_v[vel]],
+           [pts_fwd.subset_set_py, select_all, orig_y_fwd],
+           [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
+           [pts_trw.subset_set_py,  select_all, far_y_trw],
+           [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
+           [pts_trw.inc_px, trw_motion],
+           [hc5.window.set_ref, 0, test_num_spikes],
+           [hc5.window.set_ref, 1, tr_lights]
+           ]
+
+ends =    [
+           [pts_trw.on,            0],
+           [pts_fwd.on,            0],
+           [ pts_trw.set_px, orig_x_trw],
+           [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
+           [hc5.window.set_ref, 1, [0,0,0]],
+           [hc5.window.reset_pos, 1]
+           ]
+hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
+theta += 1
+
+
+test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
+starts =  [
+           [pts_fwd.on,            1],
+           [pts_trw.on,             1],
+           [hc5.window.set_bg,  [0.0,0.0,0.0,1.0]],
+         
+            ]
+
+middles = [
+           [pts_fwd.inc_pz,        fwd_v[vel]],
+           [pts_fwd.subset_set_py, select_all, orig_y_fwd],
+           [pts_fwd.subset_set_py, act_inds_fwd[vel][theta], far_y_fwd], 
+           [pts_trw.subset_set_py,  select_all, far_y_trw],
+           [pts_trw.subset_set_py,  act_inds_trw[theta], orig_y_trw ],
+           [pts_trw.inc_px, trw_motion],
+           [hc5.window.set_ref, 0, test_num_spikes],
+           [hc5.window.set_ref, 1, tr_lights]
+           ]
+
+ends =    [
+           [pts_trw.on,            0],
+           [pts_fwd.on,            0],
+           [ pts_trw.set_px, orig_x_trw],
+           [pts_fwd.inc_pz, -fwd_v[vel]*numframes],
+           [hc5.window.set_ref, 1, [0,0,0]],
+           [hc5.window.reset_pos, 1]
+           ]
+hc5.scheduler.add_test(numframes, starts, middles, ends)
+expi += 1
 
 
 # add the rest
