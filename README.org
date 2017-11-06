@@ -6,6 +6,7 @@
   - pip install pyglet
   - pip install scipy
   - pip install matplotlib
+  - pip install pyserial
 * how to run
 - run test.py when you are running with a single display monitor for testing/debugging
 - run.py is for the projector setup. Requires an appropriate viewport config
