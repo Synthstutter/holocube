@@ -12,7 +12,7 @@ num_points = 5000
 
 # how fast is forward velocity and horizontal translational velocities, triangle wav velocity?
 trng_wav_v = 0.01
-fwd_v = [0.01, 0.02]
+fwd_v = [ 0.01, 0.02]
 
 # where should our theta boundaries be?
 theta_ranges = [[0.0, 0.72273424781341566],
@@ -86,8 +86,7 @@ act_inds_trw = array([inds_btw_thetas(coords_over_t_trw, t_range[0], t_range[1])
 coords_over_t_dual[:,0] = array([[pts_dual.coords[0] , pts_dual.coords[1], pts_dual.coords[2], zeros(pts_dual.num)] for item in fwd_v])
 for ind, val in enumerate(fwd_v):
     for frame in arange(1, numframes):
-        coords_over_t_dual[ind][frame] = array([pts_dual.coords[0] + tr_wav[frame]*trng_wav_v, pts_dual.coords[1], coords_over_t_dual[ind][frame-1][2] + fwd_v[ind], zeros(pts_dual.num)])
-import pdb; pdb.set_trace()
+        coords_over_t_dual[ind][frame] = array([coords_over_t_dual[ind][frame-1][0] + trw_motion[frame], pts_dual.coords[1], coords_over_t_dual[ind][frame-1][2] + fwd_v[ind], zeros(pts_dual.num)])
 
 act_inds_dual = array([[inds_btw_thetas(coords_over_t_dual[ind], t_range[0], t_range[1]) for t_range in theta_ranges] for ind, val in enumerate(fwd_v)])
 
@@ -104,7 +103,7 @@ orig_x_dual = pts_dual.pos[0].copy()
 
 far_y_fwd = array([[10] * pts_fwd.num] * numframes)
 far_y_trw = array([[10] * pts_trw.num] * numframes)
-far_y_dual = array([[10] * pts_trw.num] * numframes)
+far_y_dual = array([[10] * pts_dual.num] * numframes)
 
 
 select_all = array([[1]*num_points] * numframes,  dtype='bool' )
@@ -118,7 +117,7 @@ hc5.scheduler.add_exp()
 ######################################### 0.01 speed ####################################################
 
 vel = 0
-theta_fwd_missing = 0
+theta_fwd = 0
 theta_trw = 1
 
 
@@ -132,9 +131,9 @@ starts =  [
 
 middles = [
            [pts_fwd.inc_pz,        fwd_v[vel]],
-           [pts_fwd.subset_set_py, select_all, orig_y_fwd],
-           [pts_fwd.subset_set_py, act_inds_fwd[vel][theta_fwd_missing],  far_y_fwd],
-           [pts_trw.subset_set_py,  select_all, far_y_trw ],
+           [pts_fwd.subset_set_py, select_all, far_y_fwd],
+           [pts_fwd.subset_set_py, act_inds_fwd[vel][theta_fwd], orig_y_fwd], 
+           [pts_trw.subset_set_py,  select_all, far_y_trw],
            [pts_trw.subset_set_py,  act_inds_trw[theta_trw], orig_y_trw ],
            [pts_trw.inc_px, trw_motion],
            [hc5.window.set_ref, 0, test_num_spikes],
@@ -543,9 +542,9 @@ starts =  [
 
 middles = [
            [pts_dual.subset_set_py,  select_all, far_y_dual],
-           [pts_dual.subset_set_py,  act_inds_dual[vel][theta_trw], orig_y_dual ],
            [pts_dual.inc_px, trw_motion],
            [pts_dual.inc_pz, fwd_v[vel]], 
+           [pts_dual.subset_set_py,  act_inds_dual[vel][theta_trw], orig_y_dual ],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights],
            ]
@@ -571,9 +570,9 @@ starts =  [
 
 middles = [
            [pts_dual.subset_set_py,  select_all, far_y_dual],
-           [pts_dual.subset_set_py,  act_inds_dual[vel][theta_trw], orig_y_dual ],
            [pts_dual.inc_px, trw_motion],
            [pts_dual.inc_pz, fwd_v[vel]], 
+           [pts_dual.subset_set_py,  act_inds_dual[vel][theta_trw], orig_y_dual ],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights],
            ]
@@ -599,9 +598,9 @@ starts =  [
 
 middles = [
            [pts_dual.subset_set_py,  select_all, far_y_dual],
-           [pts_dual.subset_set_py,  act_inds_dual[vel][theta_trw], orig_y_dual ],
            [pts_dual.inc_px, trw_motion],
            [pts_dual.inc_pz, fwd_v[vel]], 
+           [pts_dual.subset_set_py,  act_inds_dual[vel][theta_trw], orig_y_dual ],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights],
            ]
@@ -627,9 +626,9 @@ starts =  [
 
 middles = [
            [pts_dual.subset_set_py,  select_all, far_y_dual],
-           [pts_dual.subset_set_py,  act_inds_dual[vel][theta_trw], orig_y_dual ],
            [pts_dual.inc_px, trw_motion],
            [pts_dual.inc_pz, fwd_v[vel]], 
+           [pts_dual.subset_set_py,  act_inds_dual[vel][theta_trw], orig_y_dual ],
            [hc5.window.set_ref, 0, test_num_spikes],
            [hc5.window.set_ref, 1, tr_lights],
            ]
