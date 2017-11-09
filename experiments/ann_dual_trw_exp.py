@@ -8,11 +8,11 @@ expi = 1
 
 # how long for the exp?
 numframes = 500
-num_points = 500
+num_points = 5000
 
 # how fast is forward velocity and horizontal translational velocities, triangle wav velocity?
 trng_wav_v = 0.01
-fwd_v = [0.01]
+fwd_v = [0.01, 0.02]
 
 # where should our theta boundaries be?
 theta_ranges = [[0.0, 0.72273424781341566],
@@ -87,6 +87,7 @@ coords_over_t_dual[:,0] = array([[pts_dual.coords[0] , pts_dual.coords[1], pts_d
 for ind, val in enumerate(fwd_v):
     for frame in arange(1, numframes):
         coords_over_t_dual[ind][frame] = array([pts_dual.coords[0] + tr_wav[frame]*trng_wav_v, pts_dual.coords[1], coords_over_t_dual[ind][frame-1][2] + fwd_v[ind], zeros(pts_dual.num)])
+import pdb; pdb.set_trace()
 
 act_inds_dual = array([[inds_btw_thetas(coords_over_t_dual[ind], t_range[0], t_range[1]) for t_range in theta_ranges] for ind, val in enumerate(fwd_v)])
 
@@ -112,13 +113,14 @@ hc5.scheduler.add_exp()
 
 ## experiments
 
-vel = 0
-theta_fwd = 0
-theta_trw = 1
-
 
 
 ######################################### 0.01 speed ####################################################
+
+vel = 0
+theta_fwd_missing = 0
+theta_trw = 1
+
 
 test_num_spikes = hc5.tools.test_num_flash(expi, numframes)
 starts =  [
@@ -130,9 +132,9 @@ starts =  [
 
 middles = [
            [pts_fwd.inc_pz,        fwd_v[vel]],
-           [pts_fwd.subset_set_py, select_all, far_y_fwd],
-           [pts_fwd.subset_set_py, act_inds_fwd[vel][theta_fwd], orig_y_fwd], 
-           [pts_trw.subset_set_py,  select_all, far_y_trw],
+           [pts_fwd.subset_set_py, select_all, orig_y_fwd],
+           [pts_fwd.subset_set_py, act_inds_fwd[vel][theta_fwd_missing],  far_y_fwd],
+           [pts_trw.subset_set_py,  select_all, far_y_trw ],
            [pts_trw.subset_set_py,  act_inds_trw[theta_trw], orig_y_trw ],
            [pts_trw.inc_px, trw_motion],
            [hc5.window.set_ref, 0, test_num_spikes],
