@@ -134,6 +134,7 @@ class Scheduler():
         self.window.add_keypress_action((key._8, key.MOD_CTRL), self.reload_exp, 7)
         self.window.add_keypress_action((key._9, key.MOD_CTRL), self.reload_exp, 8)
         self.window.add_keypress_action((key._0, key.MOD_CTRL), self.reload_exp, 9)
+        self.window.add_keypress_action(key.R, self.toggle_randomize)
         self.window.add_keypress_action(key.BACKSPACE, self.abort_exp, True)
         self.window.add_keypress_action(key.HOME, self.print_keys, True)
         self.window.add_keypress_action(key.QUOTELEFT, self.change_idle, True)
@@ -145,6 +146,7 @@ class Scheduler():
         print ('\nKey assignments:')
         print ('{:<8} - {}'.format('Home', 'Print key assignments'))
         print ('{:<8} - {}'.format('BS', 'Abort experiment'))
+        print ('{:<8} - {} - current state = {}'.format('R', 'Toggle randomize', self.randomize))
         print ('')
 
         # now start the frames
@@ -261,11 +263,18 @@ class Scheduler():
         print ('{:<8} - {}'.format('new rest', self.idles[0].name))
         self.abort_exp(printit=False)
 
+    def toggle_randomize(self):
+        '''toggle the state of self.randomize'''
+        if self.randomize: self.randomize = 0
+        else: self.randomize = 1
+        print("Randomize state: {}".format(self.randomize))
+
     def print_keys(self, printit=True):
         '''Print the key assignments for each experiment.'''
         print ('\nKey assignments:\n')
         print ('{:<8} - {}'.format('Home', 'Print key assignments'))
         print ('{:<8} - {}'.format('BS', 'Abort experiment'))
+        print ('{:<8} - {} - current state = {}'.format('R', 'Toggle randomize', self.randomize))
         print ('')
         for i in range(len(self.idles)):
             print ('{:<8} - {}'.format('`', self.idles[i].name))
