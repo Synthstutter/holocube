@@ -7,6 +7,7 @@ import pyglet
 from pyglet.gl import *
 import scipy.stats
 from numpy.linalg import norm
+from math import acos
 
 # for rotating the camera view angles
 def rotmat(u=[0.,0.,1.], theta=0.0):
@@ -972,7 +973,73 @@ class grating_class(Sprite):
         self.image = self.gratings[num]
 
 
+class Sphere_segment(Movable):
+    '''a y-axis-centered spherical segment defined by an inner and outer angles_(in degrees measured from the y-axis). Outer angle should be larger than inner , both smaller than 90 degrees.'''
+    def __init__(self, window, sphere_rad = 0.5, outer_ang = 0.5, inner_ang = 0, color=1., add=False):
+        self.gl_type=GL_QUADS
+        self.color = color
+        self.sphere_rad = sphere_rad
+        self.outer_ang = float(outer_ang)
+        self.inner_ang = float(inner_ang)
+        self.init_coords()
+        if add: self.add()
+        super(Sphere_segment, self).__init__(window)
 
+    def set_angs(self, outer_ang, inner_ang):
+        self.inner_ang = inner_ang
+        self.outer_ang = outer_ang
+        self.init_coords()
+        
+    def set_color(self, color):
+        self.color = color
+        self.init_coords()
+        
+    def change_color(self, color):
+        '''you have to have added the instance
+        already so it has a vertex list. color is 0-255'''
+        self.colors[:] = color
+        self.vl.colors[:] = self.colors
+        
+    def init_coords(self):
+        num_azis = 180
+        num_elevs = 180
+        xlist, ylist, zlist = [], [], []
+        elevs = linspace(-pi/2, pi/2, num_elevs+1)
+        azis = linspace(0, 2*pi, num_azis+1)
+        rad_a = sin(self.outer_ang/180*pi)*self.sphere_rad
+        rad_b = sin(self.inner_ang/180*pi)*self.sphere_rad
+        lower_elevation = cos(self.outer_ang/180*pi)*self.sphere_rad
+        upper_elevation = cos(self.inner_ang/180*pi)*self.sphere_rad
+        elevs = linspace(lower_elevation, upper_elevation, num_elevs)
+        for elev_ind, elev_val in enumerate(elevs[:-1]):
+            lower_y = elev_val
+            upper_y = elevs[elev_ind + 1]
+            lower_rad = sin(acos(lower_y/self.sphere_rad))*self.sphere_rad
+            upper_rad = sin(acos(upper_y/self.sphere_rad))*self.sphere_rad
+            y1, y2, y3, y4 = lower_y, upper_y, upper_y, lower_y
+            for azi_ind in range(num_azis):
+                cur_azi = azis[azi_ind]
+                next_azi = azis[azi_ind + 1]
+                x1 = lower_rad * cos(cur_azi)*self.sphere_rad
+                x2 = upper_rad * cos(cur_azi)*self.sphere_rad
+                x3 = upper_rad * cos(next_azi)*self.sphere_rad
+                x4 = lower_rad * cos(next_azi)*self.sphere_rad
+
+                z1 = lower_rad * sin(cur_azi)*self.sphere_rad
+                z2 = upper_rad * sin(cur_azi)*self.sphere_rad
+                z3 = upper_rad * sin(next_azi)*self.sphere_rad
+                z4 = lower_rad * sin(next_azi)*self.sphere_rad
+
+                xlist.extend([x1, x2, x3, x4])
+                ylist.extend([y1, y2, y3, y4])
+                zlist.extend([z1, z2, z3, z4])
+
+        self.coords = array([xlist, ylist, zlist])
+        self.num = len(xlist)
+        self.txtcoords = None
+        self.colors = array(repeat(self.color*255, self.num*3), dtype='byte')
+
+        
 class Grating_cylinder(Sprite):
     '''Moving gratings and plaids in a single window.  Fast means put
     different values in the blue, red and green sequential channels.'''
