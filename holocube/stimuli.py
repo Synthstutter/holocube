@@ -190,7 +190,7 @@ class Movable(pyglet.graphics.Group):
                 
     def subset_set_pz(self, bool_a, z_a):
         '''set z coordinate for some vertices '''
-        self.coords[2, bool_a] = y_a[bool_a]
+        self.coords[2, bool_a] = z_a[bool_a]
         self.vl.vertices[2::3] = self.coords[2]
 
     def set_state(self):
