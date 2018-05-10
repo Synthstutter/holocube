@@ -67,7 +67,7 @@ class Sprite(pyglet.graphics.Group):
     def animate(self, frames):
         # self.sprite.draw
         pass
-
+    
 class Movable(pyglet.graphics.Group):
     '''Any opengl object that we can move and rotate outside of observer motion'''
     def __init__(self, window):
@@ -710,11 +710,28 @@ class Tree(Movable):
         self.txtcoords = None
         self.colors = array(repeat(self.color*255, self.num*3), dtype='byte')
         
+# class Solid_grating_rect(Movable):
+#     def __init__(self, window, wd = 1, ht = 1, sf = .1, c = 1, add=False):
+#         self.gl_type=GL_TRIANGLES
+#         self.wd = wd
+#         self.ht = ht
+        
+#         self.indices = indices((self.wd, self.ht))
+#         h, v = meshgrid(linspace(-pi/4, pi/4, self.wd), linspace(-pi/4, pi/4, self.ht))
+#         self.center_dists = sqrt(h**2 + v**2)
+#         self.atans = arctan2(h, v)
 
+#         self.init_coords()
+        
+#         if add: self.add()
+#         super(Solid_grating_rect, self).__init__(window)
+
+        
 class Forest(Movable):
     def __init__(self, window, numtrees=50, add=False):
         self.gl_type=GL_QUADS
         self.color = .5
+
         
         self.init_coords(numtrees)
         
@@ -1274,9 +1291,6 @@ class Grating_cylinder(Sprite):
         self.image = self.gratings[num]
 
 
-
-
-
 class Bar_array(Sprite):
     '''Moving array of bars in a single window.  Fast means put different
     values in the blue, red and green sequential channels.
@@ -1526,7 +1540,6 @@ class kinetogram_class(Sprite):
         '''Assign one of the already generated bar stims as the current
         display animation.'''
         self.image = self.animations[num]
-
 
         
 if __name__=='__main__':
