@@ -294,6 +294,17 @@ def exp_flash(num, num_pts, dist=10, col_1=255, col_2=96):
     return sl
 
 
+# get the old version of pos and ori out of saved data
+def extract_pos_ori_old(dir_name='./'):
+    fnames = os.listdir(dir_name)
+    d = []
+    fnames = [name for name in fnames if name.endswith('.npy')]
+    fnames.sort()
+    for f in fnames:
+        print f
+        dd = load(f)
+        d.append(dd)
+
 
 # some tools to extract pos ori data
 def extract_pos(pos_ori):
@@ -305,6 +316,9 @@ def extract_yaw(pos_ori):
 def extract_pitch(pos_ori):
     return arctan2(pos_ori[...,3,1], pos_ori[...,3,2])
     
+
+
+
 
 # msequence from a matlab script
 

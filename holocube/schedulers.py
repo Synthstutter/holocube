@@ -7,10 +7,11 @@ from pyglet.gl import * #this will overwrite 'resize' if it comes first
 from pyglet.window import key
 import inspect
 from os.path import isdir
-from os import listdir
+import os
 from numpy import *
 from distutils.version import LooseVersion #to make sure numpy is at least 1.8
-
+import sys
+import importlib
 
 class Test():
     '''Hold all the commands for a test or rest.'''
@@ -22,7 +23,6 @@ class Test():
         self.mids = [[mid[0], mid[1:]] for mid in middles]
         self.exp = exp
         self.pos = pos
-        # if float(__version__[:3])>=1.8: #stops working with 1.11, which is less than 1.8
         if LooseVersion(__version__) >= LooseVersion('1.8'): #proper way to compare version strings. Or StrictVersion if we know it will be formed according to certain rules
             self.do_frame = self.do_frame_new
         else:
@@ -109,9 +109,6 @@ class Scheduler():
             self.beep = pyglet.media.load(beep_file)
             self.beep_ind = beep_ind
         else: self.beep_ind = 0
-        # pyglet.resource.path = ['@holocube']
-        # pyglet.resource.reindex()
-        # if beep: self.beep = pyglet.resource.media('beep.wav', streaming=False)
 
         # all the keys
         self.window.add_keypress_action(key._1, self.begin_exp, 0)
@@ -152,6 +149,22 @@ class Scheduler():
         # now start the frames
         self.test_list = [self.idles[0].rest[0]]
         pyglet.clock.schedule_interval(self.show_frame, 1./self.freq)
+
+    def load_dir(self, dirname='experiments', suffix=('exp.py', 'rest.py')):
+        '''load a file with experiments and rests'''
+        if not isdir(dirname): # if we don't see this directory, complain
+            print ("Can\'t find directory named {}".format(dirname))
+        else:
+            if not dirname.endswith('/'): dirname = dirname + '/' # if we do see the directory, be sure it ends with a slash
+            sys.path.insert(0, dirname)
+            paths = [fn[:-3] for fn in os.listdir(dirname) if fn.endswith(suffix) and not fn.startswith(('.', '#'))] # pick the files that are exps or rests
+            paths.sort(key=lambda p: '0' if p.endswith('rest') else '1' + p) # sort the pathnames, rests first, then exps
+            currdir = os.getcwd()
+            os.chdir(dirname)
+            for path in paths:
+                importlib.import_module(path)
+            os.chdir(currdir)
+                
 
     def add_exp(self, name=None, starts=[], ends=[]):
         if name==None:

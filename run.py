@@ -6,9 +6,9 @@ import pyglet
 from pyglet.window import key
 import holocube.hc5 as hc
 
-ardname = '/dev/ttyACM0'
-# ardname = 'dummy'
-# tracker_name = 'dummy'
+# ardname = '/dev/ttyACM0'
+ardname = 'dummy'
+tracker_name = 'dummy'
 
 project = 1
 bg = [1., 1., 1., 1.]
@@ -18,10 +18,10 @@ near, far = .01, 1.
 randomize = True
 
 # start the components
-hc.window.start(project=project, bg_color=bg, near=near, far=far, load_coords=True, config='../../viewport_config.txt', projection_screen=0)
-hc.window.ref_bg_color = [.3,.3,.3,1]
+hc.window.start(project=project, bg_color=bg, near=near, far=far, load_coords=True)
+hc.window.refbgcolor = [.3,.3,.3,1]
 hc.arduino.start(ardname)
-# hc.filereader.start(tracker_name)
+hc.filereader.start(tracker_name)
 hc.scheduler.start(hc.window, randomize=randomize, default_rest_time=1)
 
 hc.window.add_keypress_action(key.UP, hc.window.inc_pitch, -.05)

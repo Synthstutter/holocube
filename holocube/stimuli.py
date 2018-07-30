@@ -1,4 +1,4 @@
-# class for a moving bar
+# classes for various flexible visual stimuli
 # lightspeed design 360 projector displays in the order b r g frames
 
 from numpy import *
@@ -23,6 +23,7 @@ def rotmat(u=[0.,0.,1.], theta=0.0):
                 [-uy, ux, 0]])
     return cost*identity(3) + sint*ux + (1 - cost)*uxu
 
+
 class Sprite(pyglet.graphics.Group):
     def __init__(self, window, vp=0, half=False):
         self.window = window
@@ -31,7 +32,7 @@ class Sprite(pyglet.graphics.Group):
         # self.pos = array([0,0.])
         self.rot = array([0.])
         self.visible = False
-        self.wd, self.ht = self.window.vps.vp[vp].coords[2], self.window.vps.vp[vp].coords[3]
+        self.wd, self.ht = self.window.viewports[vp].coords[2:]
         if half:
             self.wd = int(self.wd/2)
             self.ht = int(self.ht/2)
@@ -67,7 +68,7 @@ class Sprite(pyglet.graphics.Group):
     def animate(self, frames):
         # self.sprite.draw
         pass
-    
+
 class Movable(pyglet.graphics.Group):
     '''Any opengl object that we can move and rotate outside of observer motion'''
     def __init__(self, window):
@@ -190,7 +191,7 @@ class Movable(pyglet.graphics.Group):
                 
     def subset_set_pz(self, bool_a, z_a):
         '''set z coordinate for some vertices '''
-        self.coords[2, bool_a] = z_a[bool_a]
+        self.coords[2, bool_a] = y_a[bool_a]
         self.vl.vertices[2::3] = self.coords[2]
 
     def set_state(self):
@@ -205,7 +206,7 @@ class Movable(pyglet.graphics.Group):
         glRotatef(-self.rot[1], 0.0, 1.0, 0.0)
         glRotatef(-self.rot[0], 1.0, 0.0, 0.0)
 
-
+        
 class Shape(Movable):
     '''An arbitrary polygon.'''
     def __init__(self, window, coords, color=1., add=False):
@@ -710,28 +711,11 @@ class Tree(Movable):
         self.txtcoords = None
         self.colors = array(repeat(self.color*255, self.num*3), dtype='byte')
         
-# class Solid_grating_rect(Movable):
-#     def __init__(self, window, wd = 1, ht = 1, sf = .1, c = 1, add=False):
-#         self.gl_type=GL_TRIANGLES
-#         self.wd = wd
-#         self.ht = ht
-        
-#         self.indices = indices((self.wd, self.ht))
-#         h, v = meshgrid(linspace(-pi/4, pi/4, self.wd), linspace(-pi/4, pi/4, self.ht))
-#         self.center_dists = sqrt(h**2 + v**2)
-#         self.atans = arctan2(h, v)
 
-#         self.init_coords()
-        
-#         if add: self.add()
-#         super(Solid_grating_rect, self).__init__(window)
-
-        
 class Forest(Movable):
     def __init__(self, window, numtrees=50, add=False):
         self.gl_type=GL_QUADS
         self.color = .5
-
         
         self.init_coords(numtrees)
         
@@ -1291,6 +1275,9 @@ class Grating_cylinder(Sprite):
         self.image = self.gratings[num]
 
 
+
+
+
 class Bar_array(Sprite):
     '''Moving array of bars in a single window.  Fast means put different
     values in the blue, red and green sequential channels.
@@ -1541,6 +1528,187 @@ class kinetogram_class(Sprite):
         display animation.'''
         self.image = self.animations[num]
 
+
+class Movable_grating(Movable):
+    '''A grating that can appear anywhere in perspective projection'''
+    def __init__(self, window, coords, rate=120., xres=64, yres=64, fast=True,
+                 sf=.1, tf=1, c=1, o=0, phi_i=0., sd=None, maxframes=500,
+                 add=False):
+        super(Movable_grating, self).__init__(window)
+        # self.gl_type = GL_POLYGON
+        self.gl_type = GL_QUADS
+        self.coords = array(coords)
+        self.num = self.coords.shape[1]
+        self.txtcoords = array([[0, 1, 1, 0],[0, 0, 1, 1.]])
+        self.colors = zeros((4, self.num), dtype='byte') + 255
+        self.colors[3,:] = 255
+        
+        self.xres, self.yres = xres, yres
+
+        # self.wd, self.ht = self.window.vpcoords[0,2], self.window.vpcoords[0,3]
+        self.indices = indices((self.xres, self.yres))
+        h, v = meshgrid(linspace(-pi/4, pi/4, self.xres), linspace(-pi/4, pi/4, self.yres))
+        self.center_dists = sqrt(h**2 + v**2)
+        self.atans = arctan2(h, v)
+
+        self.rate = rate
+        self.fast = fast
+        self.gratings = []
+        self.add_grating(sf, tf, c, o, phi_i, sd, maxframes)
+        if add: self.add()
+        self.frame_ind = 0
+
+    def next_frame(self, inc=1):
+        self.frame_ind = mod(self.frame_ind + inc, self.num_frames)
+        
+    def add_grating(self, sf=.3, tf=1, c=1, o=0, phi_i=0., sd=None, maxframes=500):
+        frames = []
+        # data = zeros((self.xres, self.yres, 3), dtype='ubyte')
+        data = zeros((self.xres, self.yres, 4), dtype='ubyte') #include the alpha channel
+
+        # gaussian mask
+        if sd:
+            mask_ss = scipy.stats.norm.pdf(self.center_dists, 0, sd)
+            mask_ss /= mask_ss.max() #normalize
+        else: mask_ss = ones([self.xres, self.yres])
+
+        # spatial
+        phi_ss = 2*pi*sf*cos(self.atans + (o-pi/2))*self.center_dists
+
+        # temporal
+        if hasattr(tf, '__iter__'): tf_array = array(tf) #is it changing?
+        else:
+            tf_array = repeat(tf, min(abs(self.rate/tf), maxframes)) #or constant?
+
+        nframes = len(tf_array)
+        self.num_frames = nframes
+        phi_ts = cumsum(-2*pi*tf_array/float(self.rate))
+
+        for f in arange(nframes):
+            if self.fast: #different frames in each color (projected without color wheel)
+                if f==0: prev_phi_t = 0 #first frame?
+                else: prev_phi_t = phi_ts[f-1]
+                phi_ts_b, phi_ts_r, phi_ts_g = linspace(prev_phi_t, phi_ts[f], 4)[1:]
+            else: #or grays
+                phi_ts_b, phi_ts_r, phi_ts_g = repeat(phi_ts[f],3)
+
+            # blue channel --- we don't need sub_phi_ts[0] since it was displayed last time
+            lum = 127*(1 + c*sin(phi_ss + phi_ts_b + phi_i))
+            data[:,:,2] = lum[:,:]
+            # red channel
+            lum = 127*(1 + c*sin(phi_ss + phi_ts_r + phi_i))
+            data[:,:,0] = lum[:,:]
+            # green channel
+            lum = 127*(1 + c*sin(phi_ss + phi_ts_g + phi_i))
+            data[:,:,1] = lum[:,:]
+            data[:,:,3] = mask_ss*255
+            # data[:,:,3] = 0
+	    # make each frame and append the image to the frames list
+            frames.append(pyglet.image.ImageData(self.yres, self.xres, 'RGBA', data.tostring()))
+            
+        # make the animation with all the frames and append it to the list of playable, moving gratings
+        self.ani = pyglet.image.Animation.from_image_sequence(frames, 1./self.rate)
+        self.tbin = pyglet.image.atlas.TextureBin()
+        glEnable(GL_DEPTH_TEST)
+        glEnable(GL_TEXTURE_2D)
+        # self.ani.add_to_texture_bin(self.tbin)
+        # self.texture_id = self.tbin.atlases[0].texture.id
+        # self.gratings.append( pyglet.image.Animation.from_image_sequence(frames, 1./self.rate) )
+
+    def add(self):
+        if self.txtcoords is None: self.txtcoords = zeros((2, self.num), dtype='float')
+        self.vl = self.window.world.add(self.num, self.gl_type, self,
+                                        ('v3f', self.coords.T.flatten()),
+                                        ('c4B/stream', self.colors.T.flatten()),
+                                        ('t2f', self.txtcoords.T.flatten()))
+        self.visible = True
+
+
+
+        
+    def set_state(self):
+        super(Movable_grating, self).set_state()
+        glEnable(GL_TEXTURE_2D)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glBindTexture(GL_TEXTURE_2D, self.ani.frames[self.frame_ind].image.get_texture().id)
+
+    def unset_state(self):
+        super(Movable_grating, self).unset_state()
+        glDisable(GL_TEXTURE_2D) #skipping this causes all the other objects to oscillate with the texture!
+        glDisable(GL_BLEND)
+
+
+
+class Quad_image(Movable):
+    '''Makes a quad mesh and maps an image onto it---possibly animated.'''
+    def __init__(self, window, rate=120., xres=64, yres=64, fast=True,
+                 dist=1., left=-pi, right=pi, bottom=-pi, top=pi, xdivs=10, ydivs=10,
+                 image=None, add=False):
+        super(Quad_image, self).__init__(window)
+        self.gl_type = GL_QUADS
+        self.num = 4*xdivs*ydivs
+        self.colors = zeros((4, self.num), dtype='byte') + 255
+        self.colors[3,:] = 255
+        self.coords = zeros([3, self.num])
+        self.txtcoords = zeros([2, self.num])
+        i = 0
+        xangs, yangs = linspace(left, right, xdivs+1), linspace(bottom, top, ydivs+1)
+        sin_x, cos_x, sin_y, cos_y = sin(xangs), cos(xangs), sin(yangs), cos(yangs)
+        xtxts, ytxts = linspace(0, 1, xdivs+1), linspace(0, 1, ydivs+1)
+        for xang_ind in range(xdivs):
+            for yang_ind in range(ydivs):
+                xi, yi = xang_ind, yang_ind
+                self.coords[:,i] = [dist*sin_x[xi]*cos_y[yi], dist*sin_y[yi], -dist*cos_x[xi]*cos_y[yi]]
+                self.txtcoords[:,i] = [xtxts[xang_ind], ytxts[yang_ind]]
+                xi, yi = xang_ind, yang_ind+1
+                self.coords[:,i+1] = [dist*sin_x[xi]*cos_y[yi], dist*sin_y[yi], -dist*cos_x[xi]*cos_y[yi]]
+                self.txtcoords[:,i+1] = [xtxts[xang_ind], ytxts[yang_ind+1]]
+                xi, yi = xang_ind+1, yang_ind+1
+                self.coords[:,i+2] = [dist*sin_x[xi]*cos_y[yi], dist*sin_y[yi], -dist*cos_x[xi]*cos_y[yi]]
+                self.txtcoords[:,i+2] = [xtxts[xang_ind+1], ytxts[yang_ind+1]]
+                xi, yi = xang_ind+1, yang_ind
+                self.coords[:,i+3] = [dist*sin_x[xi]*cos_y[yi], dist*sin_y[yi], -dist*cos_x[xi]*cos_y[yi]]
+                self.txtcoords[:,i+3] = [xtxts[xang_ind+1], ytxts[yang_ind]]
+                i += 4
+        self.frame_ind = 0
+        self.xres, self.yres = xres, yres
+        self.data = zeros((self.xres, self.yres, 4), dtype='ubyte') #include the alpha channel
+        self.num_frames = 1
+        
+    def gradient_image(self, start=0, stop=255):
+        self.data[:,:,:3] = linspace(start, stop, len(self.data))[None,:,None]
+        self.data[:,:,3] = 255 #alpha channel
+        self.image = pyglet.image.ImageData(self.yres, self.xres, 'RGBA', self.data.tostring())
+
+    def load_image(self, filename):
+        self.image = pyglet.image.load(filename)
+        
+    def next_frame(self, inc=1):
+        self.frame_ind = mod(self.frame_ind + inc, self.num_frames)
+        
+    def add(self):
+        if self.txtcoords is None: self.txtcoords = zeros((2, self.num), dtype='float')
+        self.vl = self.window.world.add(self.num, self.gl_type, self,
+                                        ('v3f', self.coords.T.flatten()),
+                                        ('c4B/stream', self.colors.T.flatten()),
+                                        ('t2f', self.txtcoords.T.flatten()))
+        self.visible = True
+
+    def set_state(self):
+        super(Quad_image, self).set_state()
+        glEnable(GL_TEXTURE_2D)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glBindTexture(GL_TEXTURE_2D, self.image.get_texture().id)
+
+    def unset_state(self):
+        super(Quad_image, self).unset_state()
+        glDisable(GL_TEXTURE_2D) #skipping this causes all the other objects to oscillate with the texture!
+        glDisable(GL_BLEND)
+
+
+
         
 if __name__=='__main__':
     import holocube.hc5 as hc
@@ -1565,4 +1733,3 @@ if __name__=='__main__':
     sp.add_kinetogram(0,0,0, density=density, duration=duration,
                       coherence=cohs[5], velocity=vels[0],
                       sd=.35, num_frames=num_frames)
-

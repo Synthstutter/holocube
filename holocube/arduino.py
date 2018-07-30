@@ -39,10 +39,10 @@ class Arduino():
     #     self.ard.write(chr(channel*2 + 1 + 16*value))
 
     def serial_write(self, channel=0, value=0):
-        '''Write pwm, channel 0--15, value 0--8'''
+        '''Write pwm, channel 0--15, value 0--15'''
         self.ard.write(chr(packbits(unpackbits(array([1], dtype='ubyte')) +
                                     unpackbits(array([2*channel], dtype='ubyte')) +
-                                    unpackbits(array([32*value], dtype='ubyte'))))[0])
+                                    unpackbits(array([16*value], dtype='ubyte'))))[0])
 
     def write_channels(self, channels=[0], value=0):
         '''Write multiple pwm, channel 0--15, value 0--8'''

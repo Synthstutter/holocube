@@ -5,7 +5,8 @@ import numpy
 import os
 
 def test_num_flash(test_num, num_pts, dist=10, col_1=255, col_2=96):
-    '''take a test length and a number and produce a sequence to send to ref.set_ref_color.'''
+    '''take a test length and a number and produce a sequence to send
+    to ref.set_ref_color.'''
     sl = zeros((num_pts), dtype='O')
     for i in range(num_pts):
         sl[i] = (0,0,0)
