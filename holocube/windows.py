@@ -170,11 +170,6 @@ class Viewport_class():
         # draw everything
         self.batch.draw()
 
-    def set_ref_color(self, ind, color):
-        '''Change the color of the ref dots in a ref viewport'''
-        # print (ind, color, self.ref_vl.colors[(ind*3):(ind*3 + 3)])
-        self.ref_vl.colors[(ind*3):(ind*3 + 3)] = color
-
     def set_val(self, field, val, increment=False):
         '''Set any of the viewport positional and rotational parameters by
         name'''
@@ -249,7 +244,7 @@ class Holocube_window(pyglet.window.Window):
         self.viewports = []
         self.load_config(config_file)
         if self.project: self.set_fullscreen(True, self.screens[self.screen_number])
-        self.set_size(self.w, self.h)
+        else: self.set_size(self.w, self.h)
         self.curr_viewport_ind = 0
         self.curr_indicator_ind = 0
 
@@ -408,12 +403,9 @@ class Holocube_window(pyglet.window.Window):
         elif projection == 1:
             self.viewports[viewport_ind].draw = self.viewports[viewport_ind].draw_perspective
 
-    def set_ref(self, ref_ind, color, viewport_ind=0):
+    def set_ref(self, ref_ind, color, viewport_ind=-1):
         '''Set the color of a ref pt with a three tuple'''
-        # choose the proper viewport---usually there is only one
-        ref_vp = [vp for vp in self.viewports if vp.name.startswith('ind')][viewport_ind]
-        # swap the color of the color vertexes
-        ref_vp.ref_colors[(ref_ind*3):(ref_ind*3 + 3)] = color
+        self.viewports[viewport_ind].ref_vl.colors[(ref_ind*3):(ref_ind*3 + 3)] = color
 
     def move_ref(self, ref_ind, ax_ind, viewport_ind=0):
         '''Set the pos of a ref pt with a three tuple'''
