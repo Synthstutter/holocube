@@ -16,11 +16,9 @@ slip_v = array([-0.01, 0.01])
 def pair_ranges(seg_ends):
     return array([seg_ends[:-1],seg_ends[1:]]).T
 
-theta_ranges = array([[0,0.40145062],
+theta_ranges = array([
        [0.40145062, 1.05443582],
-       [1.05443582, 1.35575444],                
        [1.35575444, 1.78583821],
-       [1.78583821, pi]
        ])
 
 ## phis should range from -pi to pi. Can't do things like -5pi/4 just yet
@@ -58,6 +56,7 @@ class Moving_points():
         coords_over_t = array([zeros([numframes, 3, self.pts.num]) for v in self.vels])
         coords_over_t[:,0] = array([[self.pts.coords[0] , self.pts.coords[1], self.pts.coords[2]] for v in self.vels])
         self.act_inds = {}
+        self.not_act_inds = {}
         for i_vel, v_vel in enumerate(self.vels):
             direc = self.direction[i_vel] 
             dist = linalg.norm(direc)
@@ -73,6 +72,7 @@ class Moving_points():
             for t_range in self.theta_ranges:
                 for p_range in self.phi_ranges:
                     self.act_inds[( str(v_vel), str(direc), str(t_range), str(p_range))] = array(inds_btw_sph_range(coords_over_t[i_vel], t_range[0], t_range[1], p_range[0], p_range[1]))
+                    self.not_act_inds[( str(v_vel), str(direc), str(t_range), str(p_range))] = True - self.act_inds[( str(v_vel), str(direc), str(t_range), str(p_range))]             
         self.orig_y = array([self.pts.coords[1, :].copy()]*numframes)
         self.orig_x = self.pts.pos[0].copy()
         self.far_y = array([[10] * self.pts.num] * numframes)
@@ -89,6 +89,7 @@ slip_left_seq = hc5.tools.test_num_flash(3, numframes)
 slip_right_seq = hc5.tools.test_num_flash(4, numframes)
 
 hc5.scheduler.add_exp()
+import pdb; pdb.set_trace()
 
 ## experiments
 for i_fwd_v, v_fwd_v in enumerate(pts_fwd.vels):
@@ -96,7 +97,7 @@ for i_fwd_v, v_fwd_v in enumerate(pts_fwd.vels):
     v_ind_seq = hc5.tools.test_num_flash(i_fwd_v + 2, numframes)
     for i_phi, v_phi in enumerate(phi_ranges):
         phi_ind_seq = hc5.tools.test_num_flash(i_phi + 4, numframes)
-        for i_theta, v_theta in enumerate([theta_ranges[1], theta_ranges[3]]):
+        for i_theta, v_theta in enumerate([theta_ranges]):
             theta_ind_seq = hc5.tools.test_num_flash(i_theta + 1, numframes)
             for i_slip_v, v_slip_v in enumerate(slip_v):
                 if i_slip_v ==1:
