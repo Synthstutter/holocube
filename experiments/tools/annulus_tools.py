@@ -18,17 +18,19 @@ def inds_btw_sph_range(coords_array, theta_min, theta_max, phi_min, phi_max):
 
 class Moving_points():
     '''returns active indexes as dictionary. Key (vel, theta range, phi range)'''
-    def __init__(self,theta_ranges, phi_ranges, numframes,  num_points = 5000,dimensions= [[-4,4],[-2,2],[-30,5]]):
+    def __init__(self, numframes,  num_points = 5000,dimensions= [[-4,4],[-2,2],[-30,5]]):
         self.pts = hc5.stim.Points(hc5.window, num_points, dims=dimensions, color=.5, pt_size=3)
-        self.theta_ranges = theta_ranges
-        self.phi_ranges = phi_ranges
         self.vel = 0
         self.dir = [1,0,0]
         self.act_inds = {}        
         self.numframes = numframes
         self.num_points = num_points
-        
-    def calc_act_inds(self):    
+        self.orig_y = array([self.pts.coords[1, :].copy()]*self.numframes)
+        self.orig_x = self.pts.pos[0].copy()
+        self.far_y = array([[10] * self.pts.num] * self.numframes)
+        self.select_all = array([[1]*self.num_points] * self.numframes,  dtype='bool')
+
+    def calc_act_inds(self, theta_range, phi_range):    
         coords_over_t = zeros([self.numframes, 3, self.pts.num])
         coords_over_t[0] = array([self.pts.coords[0] , self.pts.coords[1], self.pts.coords[2]])
         dist = linalg.norm(self.direction)
@@ -41,15 +43,8 @@ class Moving_points():
                                             coords_over_t[frame-1][1] + y_disp,
                                             coords_over_t[frame-1][2] + z_disp,
                                            ])
-        for t_range in self.theta_ranges:
-            for p_range in self.phi_ranges:
-                self.act_inds[(str(t_range), str(p_range))] = array(inds_btw_sph_range(coords_over_t, t_range[0], t_range[1], p_range[0], p_range[1]))
-                    
-        self.orig_y = array([self.pts.coords[1, :].copy()]*self.numframes)
-        self.orig_x = self.pts.pos[0].copy()
-        self.far_y = array([[10] * self.pts.num] * self.numframes)
-        self.select_all = array([[1]*self.num_points] * self.numframes,  dtype='bool')
-
+        self.act_inds = array(inds_btw_sph_range(coords_over_t, theta_range[0], theta_range[1], phi_range[0], phi_range[1]))
+            
 class Ann_test_creator():
     ''' creates annulus experiments. takes Moving_points objects '''
     def __init__(self):
@@ -87,8 +82,10 @@ class Ann_test_creator():
         self.add_to_starts([points.pts.on, 1])
         self.add_to_middles([points.pts.subset_set_py, points.select_all, points.far_y])
         act_inds = []
-        for i_region in arange(len(theta_ranges_to_show)):
-            act_inds.append(points.act_inds[(str(theta_ranges_to_show[i_region]) , str(phi_ranges_to_show[i_region]))])
+        for i_theta, v_theta in enumerate(theta_ranges_to_show):
+            v_phi = phi_ranges_to_show[i_theta]
+            points.calc_act_inds(v_theta, v_phi)
+            act_inds.append(points.act_inds)
         act_inds = array(act_inds).sum(axis = 0)
         zero_array = zeros(act_inds.shape, dtype = bool)
         zero_array[act_inds>0] = True
