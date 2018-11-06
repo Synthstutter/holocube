@@ -22,16 +22,11 @@ class Moving_points():
         self.pts = hc5.stim.Points(hc5.window, num_points, dims=dimensions, color=.5, pt_size=3)
         self.vel = 0
         self.dir = [1,0,0]
-        self.act_inds = {}        
+        self.act_inds = []        
         self.numframes = numframes
-        self.num_points = num_points
-        self.orig_y = array([self.pts.coords[1, :].copy()]*self.numframes)
-        self.orig_x = self.pts.pos[0].copy()
-        self.far_y = array([[10] * self.pts.num] * self.numframes)
-        self.select_all = array([[1]*self.num_points] * self.numframes,  dtype='bool')
-
+        
     def calc_act_inds(self, theta_range, phi_range):    
-        coords_over_t = zeros([self.numframes, 3, self.pts.num])
+        coords_over_t = zeros([self.numframes, 3, self.pts.coords.shape[1]])
         coords_over_t[0] = array([self.pts.coords[0] , self.pts.coords[1], self.pts.coords[2]])
         dist = linalg.norm(self.direction)
         mag  = self.vel/dist 
@@ -44,7 +39,13 @@ class Moving_points():
                                             coords_over_t[frame-1][2] + z_disp,
                                            ])
         self.act_inds = array(inds_btw_sph_range(coords_over_t, theta_range[0], theta_range[1], phi_range[0], phi_range[1]))
-            
+        
+    def get_selector_funcs(self):
+        self.orig_y = array([self.pts.coords[1, :].copy()]*self.numframes)
+        self.orig_x = array([self.pts.coords[0, :].copy()]*self.numframes)
+        self.far_y = array([[10] * self.pts.num] * self.numframes)
+        self.select_all = array([[1]*self.pts.num] * self.numframes,  dtype='bool')
+
 class Ann_test_creator():
     ''' creates annulus experiments. takes Moving_points objects '''
     def __init__(self):
@@ -79,17 +80,22 @@ class Ann_test_creator():
             self.add_to_ends(end)
 
     def add_pts_region(self, points, theta_ranges_to_show, phi_ranges_to_show):
-        self.add_to_starts([points.pts.on, 1])
-        self.add_to_middles([points.pts.subset_set_py, points.select_all, points.far_y])
         act_inds = []
         for i_theta, v_theta in enumerate(theta_ranges_to_show):
             v_phi = phi_ranges_to_show[i_theta]
             points.calc_act_inds(v_theta, v_phi)
             act_inds.append(points.act_inds)
         act_inds = array(act_inds).sum(axis = 0)
+        pts_ever_visible = act_inds.sum(axis = 0, dtype = 'bool')
+        act_inds = act_inds[:, pts_ever_visible]
+        to_remove = array([not i for i in  pts_ever_visible])
+        points.pts.remove_subset(to_remove)
         zero_array = zeros(act_inds.shape, dtype = bool)
         zero_array[act_inds>0] = True
         act_inds = zero_array
+        points.get_selector_funcs()
+        self.add_to_starts([points.pts.on, 1])
+        self.add_to_middles([points.pts.subset_set_py, points.select_all, points.far_y])
         self.add_to_middles([points.pts.subset_set_py, act_inds, points.orig_y])
         self.add_to_middles([points.pts.inc_px,    points.direction[0] * points.vel/linalg.norm(points.direction)])
         self.add_to_middles([points.pts.inc_py,    points.direction[1] * points.vel/linalg.norm(points.direction)])
