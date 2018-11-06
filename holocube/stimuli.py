@@ -246,13 +246,20 @@ class Points(Movable):
         self.init_coords()
         if add: self.add()
 
-
     def set_num(self, num):
         self.num = num
         self.colors = array(repeat(self.color*255, self.num*3), dtype='byte')
         self.init_coords()
         self.txtcoords = None
 
+    def remove_subset(self, arr):
+        ''' provide bool array of points to remove '''
+        arr = array([not i for i in arr])
+        self.coords = self.coords[:,arr]
+        self.num = self.coords.shape[1]
+        self.colors = array(repeat(self.color*255, self.num*3), dtype='byte')
+        self.txtcoords = None
+    
     def shuffle(self, shuf=True):
         self.colors = array(repeat(self.color*255, self.num*3), dtype='byte')
         self.init_coords()
