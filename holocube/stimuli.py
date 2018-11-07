@@ -253,7 +253,7 @@ class Points(Movable):
         self.txtcoords = None
 
     def remove_subset(self, arr):
-        ''' provide bool array of points to remove '''
+        ''' provide bool array of vertices to remove '''
         arr = array([not i for i in arr])
         self.coords = self.coords[:,arr]
         self.num = self.coords.shape[1]
