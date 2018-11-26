@@ -46,20 +46,20 @@ class Moving_points():
         self.far_y = array([[10] * self.pts.num] * self.numframes)
         self.select_all = array([[1]*self.pts.num] * self.numframes,  dtype='bool')
 
-class Ann_test_creator():
+class Test_creator():
     ''' creates annulus experiments. takes Moving_points objects '''
     def __init__(self):
         self.starts = []
         self.middles = []
         self.ends = []
         self.add_inits()
-   
+
     def reset(self):
         self.starts = []
         self.middles = []
         self.ends = []
         self.add_inits()
-   
+       
     def add_to_starts(self, arr):
         self.starts.append(arr)
 
@@ -71,7 +71,8 @@ class Ann_test_creator():
         
     def add_inits(self):
         self.add_to_starts([hc5.window.set_bg,  [0.0,0.0,0.0,1.0]])
-        ends = [[hc5.window.set_ref, 0, [0,0,0]],
+        ends = [[hc5.window.set_bg,  [0.0,0.0,0.0,1.0]], 
+               [hc5.window.set_ref, 0, [0,0,0]],
                [hc5.window.set_ref, 1, [0,0,0]],
                [hc5.window.set_ref, 2, [0,0,0]],
                [hc5.window.set_ref, 3, [0,0,0]],
@@ -79,6 +80,16 @@ class Ann_test_creator():
         for end in ends:                   
             self.add_to_ends(end)
 
+    def add_lights(self, ref_light, seq):
+        '''adds light sequence to middles. turns off light at end'''
+        self.add_to_middles([hc5.window.set_ref, ref_light, seq])
+        self.add_to_ends([hc5.window.set_ref, 0, (0,0,0)])
+
+class Ann_test_creator(Test_creator):
+    ''' creates annulus experiments. takes Moving_points objects '''
+    def __init__(self):
+        Test_creator.__init__(self)
+    
     def add_pts_region(self, points, theta_ranges_to_show, phi_ranges_to_show):
         act_inds = []
         for i_theta, v_theta in enumerate(theta_ranges_to_show):
@@ -105,7 +116,3 @@ class Ann_test_creator():
         self.add_to_ends([points.pts.inc_pz, -points.direction[2] * points.vel/linalg.norm(points.direction)*act_inds.shape[0]])
         self.add_to_ends([points.pts.on, 0])
 
-    def add_lights(self, ref_light, seq):
-        '''adds light sequence to middles. turns off light at end'''
-        self.add_to_middles([hc5.window.set_ref, ref_light, seq])
-        self.add_to_ends([hc5.window.set_ref, 0, (0,0,0)])
