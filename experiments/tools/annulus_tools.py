@@ -71,7 +71,7 @@ class Test_creator():
         self.ends = []
         self.add_inits()
         self.numframes = numframes
-
+        
     def reset(self):
         self.starts = []
         self.middles = []
@@ -107,6 +107,18 @@ class Test_creator():
     def add_to_scheduler(self):
         hc5.scheduler.add_test(self.numframes, self.starts, self.middles, self.ends)
 
+    def add_rest_bar(self, numframes=300):
+        rbar = hc5.stim.cbarr_class(hc5.window, dist=1)
+        starts =  [[hc5.window.set_far,         2],
+                   [hc5.window.set_bg,          [0.0,0.0,0.0,1.0]],
+                   [hc5.arduino.set_lmr_scale,  -.1],
+                   [rbar.set_ry,               0],
+                   [rbar.switch,               True] ]
+        middles = [[rbar.inc_ry,               hc5.arduino.lmr]]
+        ends =    [[rbar.switch,               False],
+                   [hc5.window.set_far,         2]]
+        hc5.scheduler.add_rest(numframes, starts, middles, ends)
+
 class Ann_test_creator(Test_creator):
     ''' creates annulus experiments. takes Moving_points objects '''
     def __init__(self, num_frames):
@@ -125,3 +137,27 @@ class Ann_test_creator(Test_creator):
             self.add_to_ends([points.pts.inc_pz, -points.direction[2] * points.vel/linalg.norm(points.direction)*points.act_inds.shape[0]])
             self.add_to_ends([points.pts.on, 0])
 
+class Motion_ill_test_creator(Test_creator):
+    '''create static image motion illusions. pick image location, onset time, end time'''
+    def __init__(self, num_frames):
+        Test_creator.__init__(self, num_frames)
+
+    def add_image(self, img, left_edge=pi/4, right_edge=-pi/4, bottom_edge=-pi/4, top_edge=pi/4, rx = 0, ry = 0, rz = 0, start_t = 0.0, end_t = 1.0):
+        image = hc5.stim.Quad_image(hc5.window, left= left_edge, right= right_edge, bottom= bottom_edge, top= top_edge, xdivs=24, ydivs=1, dist=1.5)
+        image.load_image(img)
+        image_state = array([False] * self.numframes)
+        image_state[int(self.numframes*start_t): int(self.numframes*end_t)] = True
+        self.add_to_starts([hc5.window.set_far,          3])
+        self.add_to_ends([hc5.window.set_far,          2])
+        self.add_to_starts([image.set_rx, rx])
+        self.add_to_starts([image.set_ry, ry])
+        self.add_to_starts([image.set_rz, rz])
+        self.add_to_middles([image.on, image_state])
+        self.add_to_ends([image.on, False])
+
+    def add_bg_static(self, intensity= 1.0 , start_t = 0.0, end_t = 1.0):
+        ''' add a static bg color from a start to end time'''
+        bg_color = (255*intensity, 255*intensity, 255*intensity, 1.0)
+        bg_state = array([(0.0,0.0,0.0,1.0)] * self.numframes)
+        bg_state[int(self.numframes*start_t): int(self.numframes *end_t)] = bg_color
+        self.add_to_middles([hc5.window.set_bg, bg_state])
