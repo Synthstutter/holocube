@@ -1719,30 +1719,3 @@ class Quad_image(Movable):
         super(Quad_image, self).unset_state()
         glDisable(GL_TEXTURE_2D) #skipping this causes all the other objects to oscillate with the texture!
         glDisable(GL_BLEND)
-
-
-
-        
-if __name__=='__main__':
-    import holocube.hc5 as hc
-    project = 0
-    bg = [1., 1., 1., 1.]
-    bg = [0., 0., 0., 1.]
-    near, far = .01, 1.
-    randomize = False
-    hc.window.start(project=project, bg_color=bg, near=near, far=far)
-    w = hc.window
-
-    num_frames = 120
-
-    sp = kinetogram_class(hc.window, fast=False)
-
-    # a series of sfs
-    cohs = linspace(0,1,6)
-    vels = array([[0,.05], [0,-.05]])
-    density = 1
-    duration = 50
-
-    sp.add_kinetogram(0,0,0, density=density, duration=duration,
-                      coherence=cohs[5], velocity=vels[0],
-                      sd=.35, num_frames=num_frames)
