@@ -167,32 +167,38 @@ class Movable(pyglet.graphics.Group):
     def subset_inc_px(self, bool_a, x):
         '''move in x direction just some of the vertices'''
         self.coords[0, bool_a] += x
-        self.vl.vertices[::3] = self.coords[0]
+        if self.visible:
+            self.vl.vertices[::3] = self.coords[0]
 
     def subset_inc_py(self, bool_a, y):
         '''move in z direction just some of the vertices'''
         self.coords[1, bool_a] += y
-        self.vl.vertices[1::3] = self.coords[1]
+        if self.visible:
+            self.vl.vertices[1::3] = self.coords[1]
 
     def subset_inc_pz(self, bool_a, z):
         '''move in z direction just some of the vertices'''
         self.coords[2, bool_a] += z
-        self.vl.vertices[2::3] = self.coords[2]
+        if self.visible:
+            self.vl.vertices[2::3] = self.coords[2]
 
     def subset_set_px(self, bool_a, x_a):
         '''set x coordinate for some vertices '''
         self.coords[0, bool_a] = x_a[bool_a]
-        self.vl.vertices[::3] = self.coords[0]
+        if self.visible:
+            self.vl.vertices[::3] = self.coords[0]
 
     def subset_set_py(self, bool_a, y_a):
         '''set y coordinate for some vertices '''
         self.coords[1, bool_a] = y_a[bool_a]
-        self.vl.vertices[1::3] = self.coords[1]
+        if self.visible:
+            self.vl.vertices[1::3] = self.coords[1]
                 
     def subset_set_pz(self, bool_a, z_a):
         '''set z coordinate for some vertices '''
         self.coords[2, bool_a] = y_a[bool_a]
-        self.vl.vertices[2::3] = self.coords[2]
+        if self.visible:
+            self.vl.vertices[2::3] = self.coords[2]
 
     def set_state(self):
         glRotatef(self.rot[0], 1.0, 0.0, 0.0)
