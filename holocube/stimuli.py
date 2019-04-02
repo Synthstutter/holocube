@@ -248,7 +248,7 @@ class Points(Movable):
         if len(self.dims.shape) == 1:
             self.dims = array([[-dims[0], dims[0]], [-dims[1], dims[1]], [-dims[2], dims[2]]])
         self.txtcoords = None
-
+        
         self.init_coords()
         if add: self.add()
 
@@ -286,6 +286,29 @@ class Points(Movable):
     def unset_state(self):
         super(Points, self).unset_state()
         glPointSize(1)
+
+class kinetogram_pts_field(Points):
+    def __init__(self, window, num=1000, dims=[(-1,1),(-1,1),(-1,1)],
+                 color=1., pt_size=1, add=False):
+        super(kinetogram_pts_field, self).__init__(window)
+        
+    def move_points(self, coherence=.5, sd=None,
+                        duration=3, velocity=[1.,0.]):
+        velocity = array(velocity)
+        speed = norm(velocity)
+        # if sd:
+            # mask_ss = scipy.stats.norm.pdf(self.center_dists, 0, sd)
+            # mask_ss /= mask_ss.max() #normalize
+        # else: mask_ss = ones([wd, ht])
+        numcoh, numran = int(round(coherence*self.num)), int(round((1 - coherence)*self.num))
+        allpts = arange(self.num)
+        random.shuffle(allpts)
+        cohpts = cohpts[:numcoh]
+        ci =random.randint(0, duration, (numcoh))
+        ri = random.rand(numran, 2)*array([wd, ht]), random.randint(0, duration, (numran))
+        import pdb; pdb.set_trace()
+
+
 
 class pts_trail_class(Movable):
     def __init__(self, window, num=1000, dims=[(-1,1),(-1,1),(-1,1)],
