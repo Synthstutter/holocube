@@ -164,39 +164,39 @@ class Movable(pyglet.graphics.Group):
     def update_ry_func(self, dt=0.0, func=None):
         self.rot[1] = func()
     
-    def subset_inc_px(self, bool_a, x):
-        '''move in x direction just some of the vertices'''
-        self.coords[0, bool_a] += x
+    def subset_inc_px(self, ind_a, x):
+        '''move in x direction just some of the vertices using index array'''
+        self.coords[0, ind_a] += x
         if self.visible:
             self.vl.vertices[::3] = self.coords[0]
 
-    def subset_inc_py(self, bool_a, y):
-        '''move in z direction just some of the vertices'''
+    def subset_inc_py(self, ind_a, y):
+        '''move in z direction just some of the vertices using index array'''
         self.coords[1, bool_a] += y
         if self.visible:
             self.vl.vertices[1::3] = self.coords[1]
 
-    def subset_inc_pz(self, bool_a, z):
-        '''move in z direction just some of the vertices'''
+    def subset_inc_pz(self, ind_a, z):
+        '''move in z direction just some of the vertices using index array'''
         self.coords[2, bool_a] += z
         if self.visible:
             self.vl.vertices[2::3] = self.coords[2]
 
-    def subset_set_px(self, bool_a, x_a):
+    def subset_set_px(self, ind_a, x_a):
         '''set x coordinate for some vertices '''
-        self.coords[0, bool_a] = x_a[bool_a]
+        self.coords[0, ind_a] = x_a[ind_a]
         if self.visible:
             self.vl.vertices[::3] = self.coords[0]
 
-    def subset_set_py(self, bool_a, y_a):
+    def subset_set_py(self, ind_a, y_a):
         '''set y coordinate for some vertices '''
-        self.coords[1, bool_a] = y_a[bool_a]
+        self.coords[1, ind_a] = y_a[ind_a]
         if self.visible:
             self.vl.vertices[1::3] = self.coords[1]
                 
-    def subset_set_pz(self, bool_a, z_a):
+    def subset_set_pz(self, ind_a, z_a):
         '''set z coordinate for some vertices '''
-        self.coords[2, bool_a] = y_a[bool_a]
+        self.coords[2, ind_a] = y_a[ind_a]
         if self.visible:
             self.vl.vertices[2::3] = self.coords[2]
 
