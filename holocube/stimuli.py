@@ -235,18 +235,22 @@ class Horizon(Shape):
 # class pts_class(movable_fast_class):
 class Points(Movable):
 
-    def __init__(self, window, num=1000, dims=[(-1,1),(-1,1),(-1,1)],
+    def __init__(self, window, num=1000, density = None, dims=[(-1,1),(-1,1),(-1,1)],
                  color=1., pt_size=1, add=False):
 
         super(Points, self).__init__(window)
         self.gl_type = GL_POINTS
         self.pt_size = pt_size
         self.num = num
-        self.color = color
-        self.colors = array(repeat(color*255, self.num*3), dtype='byte')
         self.dims = array(dims)
         if len(self.dims.shape) == 1:
-            self.dims = array([[-dims[0], dims[0]], [-dims[1], dims[1]], [-dims[2], dims[2]]])
+            dims = array([[-self.dims[0], self.dims[0]], [-self.dims[1], self.dims[1]], [-self.dims[2], self.dims[2]]])
+        if density:
+            volume  = abs(product(self.dims[:, 1] - self.dims[:, 0]))
+            self.num = int(density * volume)
+        self.color = color
+        self.colors = array(repeat(color*255, self.num*3), dtype='byte')
+        
         self.txtcoords = None
         
         self.init_coords()
