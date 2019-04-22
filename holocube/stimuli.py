@@ -622,61 +622,58 @@ class sphere_lines_class(Movable):
                 self.coords[2, ind] = r*cos(nseg_ang)
                 ind += 1
 
-class horizon_class(Movable):
-    '''a horizon of any color that can be raised or tilted.'''
-    def __init__(self, window, elevation=0, radius=2., flipped=False, color=1., add=False):
+class Spherical_segment(Movable):
+    '''a spherical segment of any color that can be raised or tilted.
+    Making this with phi degrees for the top and bottom polar angles,
+    which is 0 at the north pole, and 90 at the south pole.
+    '''
+    def __init__(self, window, polang_top=0, polang_bot=90, radius=1.,
+                 color=0., elres=60, azres=60, add=False):
+        super(Spherical_segment, self).__init__(window)
         self.gl_type=GL_QUADS
-        self.color = color
-        self.flipped = flipped
-        self.elevation = elevation
-        self.init_coords(elevation, radius)
+        self.elres = elres
+        self.azres = azres
+        self.init_coords(polang_top, polang_bot, radius, color)
         if add: self.add()
-        super(horizon_class, self).__init__(window)
-
-    def set_elevation(self, elevation):
-        self.elevation = elevation
-        self.init_coords(elevation)
-
-    def set_color(self, color):
-        self.color = color
-        self.init_coords(self.elevation)
 
     def change_color(self, color):
-        '''you have to have added the instance
-        already so it has a vertex list. color is 0-255'''
+        '''you have to have added the instance already so it has a vertex
+        list. color is 0-255
+        '''
         self.colors[:] = color
         self.vl.colors[:] = self.colors
         
-    def init_coords(self, elevation=0, radius=2.):
-        num_azis = 50
-        num_elevs = 180
-
+    def init_coords(self, polang_top=0, polang_bot=180, radius=1., color=1.):
         xlist, ylist, zlist = [], [], []
-        elevs = linspace(-pi/2, pi/2, num_elevs+1)
-        if self.flipped: elevs = elevs[::-1] #reverse the elevations to make the horizon above instead of below
-        azis = linspace(0, 2*pi, num_azis+1)
-        for elev_ind in range(int(elevation)+90):
-            lower_elev = elevs[elev_ind]
-            upper_elev = elevs[elev_ind + 1]
-            lower_y = radius*sin(lower_elev)
-            upper_y = radius*sin(upper_elev)
-            lower_rad = radius*cos(lower_elev)
-            upper_rad = radius*cos(upper_elev)
+        # change to radians
+        phi1 = polang_top*pi/180
+        phi2 = polang_bot*pi/180
+        # goes a fraction of the way around, so choose num segs based on elres
+        els = linspace(phi1, phi2, int(ceil(self.elres*(phi2-phi1)/(2*pi))) + 1)
+        # this always goes all the way around
+        azs = linspace(0, 2*pi, int(self.azres) + 1)
+        for eind in range(len(els) - 1):
+            n_elev = els[eind]          #northern and southern elevations
+            s_elev = els[eind + 1]      #0 at npole, pi/2 at equator, pi at spole
+            n_y = radius*cos(n_elev)    #calculate the y coord
+            s_y = radius*cos(s_elev)
+            n_prad = radius*sin(n_elev) #radius projected onto xz plane
+            s_prad = radius*sin(s_elev)
+            y1, y2, y3, y4 = n_y, s_y, s_y, n_y
 
-            y1, y2, y3, y4 = lower_y, upper_y, upper_y, lower_y
+            for aind in range(len(azs) - 1):
+                w_azi = azs[aind]       #western and eastern azimuths
+                e_azi = azs[aind + 1]
 
-            for azi_ind in range(num_azis):
-                cur_azi = azis[azi_ind]
-                next_azi = azis[azi_ind + 1]
-                x1 = lower_rad * cos(cur_azi)
-                x2 = upper_rad * cos(cur_azi)
-                x3 = upper_rad * cos(next_azi)
-                x4 = lower_rad * cos(next_azi)
+                x1 = n_prad * cos(w_azi)
+                x2 = s_prad * cos(w_azi)
+                x3 = s_prad * cos(e_azi)
+                x4 = n_prad * cos(e_azi)
 
-                z1 = lower_rad * sin(cur_azi)
-                z2 = upper_rad * sin(cur_azi)
-                z3 = upper_rad * sin(next_azi)
-                z4 = lower_rad * sin(next_azi)
+                z1 = n_prad * sin(w_azi)
+                z2 = s_prad * sin(w_azi)
+                z3 = s_prad * sin(e_azi)
+                z4 = n_prad * sin(e_azi)
 
                 xlist.extend([x1, x2, x3, x4])
                 ylist.extend([y1, y2, y3, y4])
@@ -685,8 +682,7 @@ class horizon_class(Movable):
         self.coords = array([xlist, ylist, zlist])
         self.num = len(xlist)
         self.txtcoords = None
-        self.colors = array(repeat(self.color*255, self.num*3), dtype='byte')
-
+        self.colors = array(repeat(color*255, self.num*3), dtype='byte')
 
 class Tree(Movable):
     def __init__(self, window, distance=3, num_sides=12, num_levels=3, color=0.0, add=False):
