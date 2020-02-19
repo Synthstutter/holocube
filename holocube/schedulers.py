@@ -42,6 +42,7 @@ class Test():
         if frame_num < self.num_frames:
             [func(*[arg() if hasattr(arg, '__call__') else
                     take(arg, frame_num, mode='wrap', axis=0) if isinstance(arg, ndarray) else
+                    take(arg, frame_num, mode='wrap', axis=0) if isinstance(arg, list) else
                     arg for arg in args]) for func, args in self.mids]
             return True
         else:

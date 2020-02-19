@@ -104,6 +104,7 @@ class Test_creator():
         self.add_to_middles([hc5.window.set_ref, ref_light, seq])
         self.add_to_ends([hc5.window.set_ref, 0, (0,0,0)])
 
+
     def add_to_scheduler(self):
         hc5.scheduler.add_test(self.numframes, self.starts, self.middles, self.ends)
 

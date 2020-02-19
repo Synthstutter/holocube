@@ -172,13 +172,13 @@ class Movable(pyglet.graphics.Group):
 
     def subset_inc_py(self, ind_a, y):
         '''move in z direction just some of the vertices using index array'''
-        self.coords[1, bool_a] += y
+        self.coords[1, ind_a] += y
         if self.visible:
             self.vl.vertices[1::3] = self.coords[1]
 
     def subset_inc_pz(self, ind_a, z):
         '''move in z direction just some of the vertices using index array'''
-        self.coords[2, bool_a] += z
+        self.coords[2, ind_a] += z
         if self.visible:
             self.vl.vertices[2::3] = self.coords[2]
 
@@ -310,8 +310,6 @@ class kinetogram_pts_field(Points):
         cohpts = cohpts[:numcoh]
         ci =random.randint(0, duration, (numcoh))
         ri = random.rand(numran, 2)*array([wd, ht]), random.randint(0, duration, (numran))
-        import pdb; pdb.set_trace()
-
 
 
 class pts_trail_class(Movable):
